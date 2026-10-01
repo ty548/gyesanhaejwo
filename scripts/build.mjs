@@ -6,7 +6,7 @@ import { forms, fieldHtml } from '../src/forms.js';
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const dist = path.join(root, 'dist');
-const siteUrl = process.env.SITE_URL?.replace(/\/+$/, '');
+const siteUrl = (process.env.SITE_URL || 'https://gyesanhaejwo.vercel.app').replace(/\/+$/, '');
 if (siteUrl && (!/^https:\/\//.test(siteUrl) || new URL(siteUrl).pathname !== '/')) {
   throw new Error('SITE_URL은 경로가 없는 https:// 도메인이어야 합니다.');
 }

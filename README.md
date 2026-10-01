@@ -14,7 +14,7 @@ npm run dev
 
 `dist/`를 정적 호스팅에 배포하면 `/loan/`, `/severance/` 같은 독립 URL에서 각 계산기를 사용할 수 있습니다. 개발 서버는 `http://localhost:4173`입니다.
 
-실제 배포 도메인이 정해지면 빌드 환경 변수 `SITE_URL`에 `https://example.com` 형태의 주소를 설정하세요. 그러면 각 페이지의 canonical·Open Graph URL, `sitemap.xml`, `robots.txt`의 사이트맵 경로가 생성됩니다. 배포 후 실제 URL을 Google Search Console에 등록하고 색인 및 Core Web Vitals를 확인하세요.
+기본 배포 주소는 `https://gyesanhaejwo.vercel.app`입니다. 빌드 시 각 페이지의 canonical·Open Graph URL, `sitemap.xml`, `robots.txt`의 사이트맵 경로가 생성됩니다. 자체 도메인을 연결하면 빌드 환경 변수 `SITE_URL`에 해당 `https://` 주소를 설정하고 다시 배포하세요. 배포 후 실제 URL을 Google Search Console에 등록하고 색인 및 Core Web Vitals를 확인하세요.
 
 Vercel 배포 설정은 `vercel.json`에 있습니다. 광고 수익과 비용 대비 ROI의 가정별 계산은 [광고 수익 시나리오](docs/advertising-roi.md)를 참고하세요.
 
