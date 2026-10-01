@@ -18,6 +18,7 @@ assert.ok(!sitemap.includes('gyesanhaejwo.vercel.app'), 'old domain remains in s
 const schemaOf = html => [...html.matchAll(/<script type="application\/ld\+json">([^<]+)<\/script>/g)].map(match => JSON.parse(match[1]));
 const home = await read('index.html');
 assert.match(home, /<h1>무료 온라인 <em>계산기<\/em><\/h1>/);
+assert.match(home, /<meta name="google-site-verification" content="M87cSaYmzx1g5y_fo6LFVriQayr94mz8lCJIzb09aq4">/);
 assert.match(home, new RegExp(`<link rel="canonical" href="${origin}/"`));
 assert.ok(home.includes(`<meta property="og:url" content="${origin}/"`));
 assert.match(home, /href="\/calculator\/"/);
