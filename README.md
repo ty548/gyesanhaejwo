@@ -16,6 +16,8 @@ npm run dev
 
 실제 배포 도메인이 정해지면 빌드 환경 변수 `SITE_URL`에 `https://example.com` 형태의 주소를 설정하세요. 그러면 각 페이지의 canonical·Open Graph URL, `sitemap.xml`, `robots.txt`의 사이트맵 경로가 생성됩니다. 배포 후 실제 URL을 Google Search Console에 등록하고 색인 및 Core Web Vitals를 확인하세요.
 
+Vercel 배포 설정은 `vercel.json`에 있습니다. 광고 수익과 비용 대비 ROI의 가정별 계산은 [광고 수익 시나리오](docs/advertising-roi.md)를 참고하세요.
+
 ## 계산기
 
 대출, 퇴직금, 연봉 실수령액, 시급·주휴수당, 적금·예금, 부가세, DSR·LTV, 아파트 구매 총비용, 상가 취득·수익률, 환율 계산기를 제공합니다. 환율은 Frankfurter API에서 최신 기준 환율을 조회하며 실패 시 직접 입력할 수 있습니다.
