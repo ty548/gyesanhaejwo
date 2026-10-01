@@ -1,3 +1,6 @@
+import { dateTimeCalculators, dateUtc } from './date-time.js';
+import { apartmentCost, commercialProperty } from './property.js';
+
 const n = value => {
   const result = Number(value);
   if (value === '' || value == null || !Number.isFinite(result) || result < 0) {
@@ -17,12 +20,7 @@ const monthsFromYears = value => {
   if (!Number.isInteger(years) || years < 1 || years > 100) throw new Error('기간은 1~100년의 정수로 입력해 주세요.');
   return years * 12;
 };
-const parseDate = value => {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('날짜를 확인해 주세요.');
-  const date = new Date(`${value}T00:00:00Z`);
-  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== value) throw new Error('날짜를 확인해 주세요.');
-  return date;
-};
+const parseDate = value => dateUtc(value);
 const daysBetween = (start, end) => (parseDate(end) - parseDate(start)) / 86400000;
 const threeMonthsBefore = end => {
   const date = parseDate(end);
@@ -115,27 +113,19 @@ export const calculators = {
     return { rows: [['DSR', dsr, 'percent'], ['LTV', ltv, 'percent'], ['연간 원리금 상환액', annualPayment, 'money'], ['입력 한도 내 여부', dsr <= dsrLimit && ltv <= ltvLimit ? '범위 내' : '초과', 'text']], note: '신규 대출은 원리금균등 방식의 월 상환액 12회로 단순 계산합니다. 실제 심사는 스트레스 금리, 대출 유형, 지역·보유주택 규정 등을 별도로 적용합니다. 입력 한도는 비교용입니다.' };
   },
   'apartment-cost': v => {
-    const price = won(v.price), loan = won(v.loan), tax = price * pct(v.taxRate), brokerage = price * pct(v.brokerageRate) * 1.1;
-    const costs = tax + brokerage + won(v.legal) + won(v.misc);
-    const total = price + costs;
-    if (!price || loan > total) throw new Error('매매가와 대출금을 확인해 주세요. 대출금은 구매 총비용을 넘을 수 없습니다.');
-    return { rows: [['필요한 자기자본', total - loan, 'money'], ['구매 총비용', total, 'money'], ['취득 부대비용', costs, 'money'], ['월 대출 상환액', loanPayment(loan, n(v.rate), monthsFromYears(v.years)), 'money']], note: '중개보수에는 부가세 10%를 더하고 대출은 원리금균등으로 계산합니다. 취득 관련 세율은 주택 수·가격·면적·지역 등에 따라 달라집니다.' };
+    return apartmentCost(v, loanPayment);
   },
   'commercial-property': v => {
-    const price = won(v.price), loan = won(v.loan), deposit = won(v.deposit);
-    if (!price) throw new Error('상가 매매가는 0보다 커야 합니다.');
-    const acquisition = price * pct(v.taxRate) + price * pct(v.brokerageRate) * 1.1 + won(v.other);
-    const cash = price + acquisition - loan - deposit;
-    if (cash <= 0) throw new Error('대출금과 보증금의 합계가 취득 총비용 이상입니다. 실투자금을 확인해 주세요.');
-    const noi = (won(v.rent) - won(v.cost)) * 12 - won(v.vacancy);
-    const interest = loan * pct(v.rate), cashFlow = noi - interest;
-    return { rows: [['연간 현금흐름', cashFlow, 'money'], ['실투자금', cash, 'money'], ['취득 부대비용', acquisition, 'money'], ['순영업수익률', noi / price * 100, 'percent'], ['실투자금 대비 수익률', cashFlow / cash * 100, 'percent']], note: '이자만 납부하는 대출을 가정합니다. 건물분 부가세, 소득세, 원금 상환과 매각 손익은 포함하지 않았습니다.' };
+    return commercialProperty(v, loanPayment);
   },
   exchange: v => {
     const amount = n(v.amount), sameCurrency = v.from && v.to && v.from === v.to;
     const rate = sameCurrency ? 1 : n(v.rate), fee = sameCurrency ? 0 : percent(v.fee);
+    const preferential = sameCurrency ? 0 : percent(v.preferential ?? 0);
     if (rate <= 0) throw new Error('환율을 입력하거나 최신 환율을 불러와 주세요.');
     const converted = amount * rate;
-    return { rows: [['수수료 반영 수령액', converted * (1 - fee), 'currency'], ['기준 환산액', converted, 'currency'], ['환전 비용', converted * fee, 'currency']], note: sameCurrency ? '같은 통화는 환전하지 않으므로 환율 1과 수수료 0으로 계산합니다.' : '기준 환율과 실제 은행의 현찰 매매율은 다를 수 있습니다. 환율 조회 날짜와 수수료를 확인하세요.' };
-  }
+    const effectiveFee = fee * (1 - preferential);
+    return { rows: [['수수료 반영 수령액', converted * (1 - fee), 'currency'], ['기준 환산액', converted, 'currency'], ['환전 비용', converted * fee, 'currency'], ['우대율 적용 수령액', converted * (1 - effectiveFee), 'currency'], ['우대 후 환전 비용', converted * effectiveFee, 'currency']], note: sameCurrency ? '같은 통화는 환전하지 않으므로 환율 1과 수수료 0으로 계산합니다.' : '우대율은 입력 수수료에만 적용합니다. 기준 환율과 실제 은행 현찰 매매율·스프레드는 다를 수 있습니다.' };
+  },
+  ...dateTimeCalculators
 };

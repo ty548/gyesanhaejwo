@@ -132,7 +132,10 @@ test('예금은 단리와 이자 과세를 반영', () => {
 
 test('모든 계산기 기본 입력값은 유한한 결과를 생성', () => {
   for (const [slug, fields] of Object.entries(forms)) {
-    const values = Object.fromEntries(fields.map(field => [field.key, field.type === 'select' ? field.options[0][0] : field.value]));
+    const values = Object.fromEntries(fields.map(field => [field.key, ['select', 'pill'].includes(field.type) ? field.options[0][0] : field.value]));
+    values.today = '2026-10-01';
+    values.nowTime = '09:00';
+    values.nowSeconds = 9 * 3600;
     if (slug === 'exchange') values.rate = 1400;
     const result = calculators[slug](values);
     assert.ok(result.rows.length > 0, `${slug}: 결과 없음`);
