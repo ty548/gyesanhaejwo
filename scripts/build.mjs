@@ -4,6 +4,7 @@ import path from 'node:path';
 import { tools, categories } from '../src/catalog.js';
 import { forms, fieldHtml } from '../src/forms.js';
 import { renderHome } from '../src/home.js';
+import { generalCalculatorMarkup } from '../src/general-page.js';
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const dist = path.join(root, 'dist');
@@ -13,10 +14,11 @@ if (siteUrl && (!/^https:\/\//.test(siteUrl) || new URL(siteUrl).pathname !== '/
 }
 const esc = text => String(text).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 const card = tool => `<a class="tool-card" href="/${tool.slug}/" data-search="${esc([tool.title, tool.short, tool.keywords || '', categories.find(category => category.id === tool.category)?.name].join(' ').toLowerCase())}"><span class="tool-icon" aria-hidden="true">${tool.icon}</span><span class="tool-copy"><strong>${tool.title}</strong><small>${tool.short}</small></span><span class="card-arrow" aria-hidden="true">↗</span></a>`;
-const head = (title, description) => {
-  const slug = tools.find(tool => tool.title === title)?.slug;
+const head = (title, description, { slug, home = false, schema } = {}) => {
   const absoluteUrl = siteUrl ? `${siteUrl}${slug ? `/${slug}/` : '/'}` : null;
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f2f8ff"><title>${esc(title)} | 계산해줘</title><meta name="description" content="${esc(description)}"><meta property="og:type" content="website"><meta property="og:title" content="${esc(title)} | 계산해줘"><meta property="og:description" content="${esc(description)}">${absoluteUrl ? `<link rel="canonical" href="${esc(absoluteUrl)}"><meta property="og:url" content="${esc(absoluteUrl)}">` : ''}<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/style.css"><script type="module" src="/assets/app.js"></script></head>`;
+  const fullTitle = home ? '계산해줘 | 무료 온라인 계산기 · 대출·연봉·날짜·환율' : `${title} | 계산해줘`;
+  const jsonLd = schema ? `<script type="application/ld+json">${JSON.stringify(schema).replaceAll('<', '\\u003c')}</script>` : '';
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f2f8ff"><title>${esc(fullTitle)}</title><meta name="description" content="${esc(description)}"><meta property="og:type" content="website"><meta property="og:title" content="${esc(fullTitle)}"><meta property="og:description" content="${esc(description)}">${absoluteUrl ? `<link rel="canonical" href="${esc(absoluteUrl)}"><meta property="og:url" content="${esc(absoluteUrl)}">` : ''}${jsonLd}<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/style.css"><script type="module" src="/assets/app.js"></script></head>`;
 };
 const navLinks = [['전체 계산기', '/#all-tools'], ['인기 계산기', '/#popular'], ['날짜·시간', '/#category-date-time'], ['부동산', '/#category-property'], ['대출·금융', '/#category-finance']];
 const header = `<header class="site-header"><div class="shell header-inner"><a class="brand" href="/" aria-label="계산해줘 홈"><span class="brand-mark" aria-hidden="true">⌗</span><span>계산해줘</span></a><nav class="nav-links" aria-label="주요 메뉴">${navLinks.map(([label,url]) => `<a href="${url}">${label}</a>`).join('')}</nav><details class="mobile-menu"><summary>메뉴</summary><nav aria-label="모바일 메뉴">${navLinks.map(([label,url]) => `<a href="${url}">${label}</a>`).join('')}</nav></details></div></header>`;
@@ -39,7 +41,8 @@ const guides = {
   'work-time': ['출퇴근시각의 차이에서 휴게시간을 차감합니다.', '퇴근시각이 출근시각보다 이르면 다음 날 퇴근으로 계산합니다.'],
   'playback-speed': ['실제 시청시간은 원본 영상 길이 ÷ 재생 배속입니다.', '시작 시각에 실제 시청시간을 더해 종료 시각을 추정합니다. 일시정지는 포함하지 않습니다.'],
   'work-clock': ['현재 시각은 브라우저의 시계를 사용하며 1분마다 남은 시간을 갱신합니다.', '휴게시간의 정확한 시각을 받지 않으므로 현재까지 근무한 시간은 근무 구간 전체에 휴게를 균등하게 배분한 추정치입니다.'],
-  'salary-clock': ['월급 ÷ 월 근무일수 ÷ 1일 근무시간으로 시간당 수입을 추정합니다.', '오늘 번 돈은 현재 근무 진행률에 비례한 추정치입니다. 세금·수당·휴일·연장근로는 자동 반영하지 않습니다.']
+  'salary-clock': ['월급 ÷ 월 근무일수 ÷ 1일 근무시간으로 시간당 수입을 추정합니다.', '오늘 번 돈은 현재 근무 진행률에 비례한 추정치입니다. 세금·수당·휴일·연장근로는 자동 반영하지 않습니다.'],
+  calculator: ['계산식을 입력하고 = 또는 Enter를 누르면 결과를 확인할 수 있습니다. 예: (12 + 8) × 3 = 60, 200 × 10% = 20입니다.', '숫자와 연산자는 키보드로도 입력할 수 있습니다. Backspace는 한 글자 삭제, Escape는 전체 지우기입니다. %는 앞 숫자를 100으로 나눈 값으로 계산합니다.']
 };
 const sources = {
   severance: ['고용노동부 퇴직금 계산', 'https://1350.moel.go.kr/home/hp/retirementpaycal/retirementpaycal.jsp'],
@@ -52,21 +55,30 @@ const sources = {
 
 
 function toolPage(tool) {
+  const category = categories.find(item => item.id === tool.category);
+  const crumbs = [
+    { name: '홈', url: `${siteUrl}/` },
+    { name: category.name, url: `${siteUrl}/#category-${category.id}` },
+    { name: tool.title, url: `${siteUrl}/${tool.slug}/` }
+  ];
+  const schema = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: crumbs.map((crumb, index) => ({ '@type': 'ListItem', position: index + 1, name: crumb.name, item: crumb.url })) };
   const related = tools.filter(item => item.slug !== tool.slug && item.category === tool.category).slice(0, 3);
   const other = related.length ? related : tools.filter(item => item.slug !== tool.slug).slice(0, 3);
   const guide = `<section class="guide-section"><span class="section-kicker">HOW IT WORKS</span><h2>${tool.title} 계산 방법</h2>${guides[tool.slug].map(paragraph => `<p>${paragraph}</p>`).join('')}${sources[tool.slug] ? `<a href="${sources[tool.slug][1]}" target="_blank" rel="noopener noreferrer">기준 확인: ${sources[tool.slug][0]} ↗</a>` : ''}</section>`;
-  return `${head(tool.title, tool.description)}<body data-tool="${tool.slug}">${header}<main class="shell tool-main"><nav class="breadcrumbs" aria-label="현재 위치"><a href="/">홈</a><span aria-hidden="true">›</span><span>${tool.title}</span></nav><section class="tool-intro"><div class="intro-icon" aria-hidden="true">${tool.icon}</div><div><span class="section-kicker">FREE CALCULATOR</span><h1>${tool.title}</h1><p>${tool.description}</p></div></section><div class="calculator-layout"><section class="calc-panel" aria-labelledby="input-heading"><div class="panel-header"><div><span class="step-label">STEP 01</span><h2 id="input-heading">조건 입력</h2></div><span class="panel-chip">간편 계산</span></div><form id="calculator-form" class="calculator-form"></form><p id="form-error" class="form-error" role="alert"></p><div id="rate-tools" class="rate-tools" hidden><button type="button" id="fetch-rate">↻ 최신 기준 환율 불러오기</button><p id="rate-status" role="status"></p></div></section><section class="result-panel" id="result-panel" aria-labelledby="result-heading" aria-live="${['work-clock', 'salary-clock'].includes(tool.slug) ? 'off' : 'polite'}"><div class="panel-header"><div><span class="step-label">STEP 02</span><h2 id="result-heading">계산 결과</h2></div><span class="result-sparkle" aria-hidden="true">✦</span></div><div id="result-list" class="result-list"><p class="result-placeholder">숫자를 입력하면 결과가 여기에 표시됩니다.</p></div><p id="result-note" class="result-note"></p></section></div><div class="tool-info"><div class="info-symbol" aria-hidden="true">ⓘ</div><div><strong>계산 전 확인하세요</strong><p>표시된 값은 입력 조건에 따른 예상치입니다. 금리, 세율, 공제 조건과 실제 적용 기준을 확인한 뒤 결정에 활용하세요.</p></div></div>${guide}<section class="related-section"><div class="section-heading"><div><span class="section-kicker">NEXT STEP</span><h2>함께 쓰면 좋은 계산기</h2></div><a class="text-link" href="/#all-tools">전체 보기 →</a></div><div class="card-grid">${other.map(card).join('')}</div></section></main>${footer}</body></html>`;
+  const calculator = tool.slug === 'calculator';
+  const core = calculator ? `<section class="general-page-section" aria-label="일반 계산기">${generalCalculatorMarkup()}</section>` : `<div class="calculator-layout"><section class="calc-panel" aria-labelledby="input-heading"><div class="panel-header"><div><span class="step-label">STEP 01</span><h2 id="input-heading">조건 입력</h2></div><span class="panel-chip">간편 계산</span></div><form id="calculator-form" class="calculator-form"></form><p id="form-error" class="form-error" role="alert"></p><div id="rate-tools" class="rate-tools" hidden><button type="button" id="fetch-rate">↻ 최신 기준 환율 불러오기</button><p id="rate-status" role="status"></p></div></section><section class="result-panel" id="result-panel" aria-labelledby="result-heading" aria-live="${['work-clock', 'salary-clock'].includes(tool.slug) ? 'off' : 'polite'}"><div class="panel-header"><div><span class="step-label">STEP 02</span><h2 id="result-heading">계산 결과</h2></div><span class="result-sparkle" aria-hidden="true">✦</span></div><div id="result-list" class="result-list"><p class="result-placeholder">숫자를 입력하면 결과가 여기에 표시됩니다.</p></div><p id="result-note" class="result-note"></p></section></div><div class="tool-info"><div class="info-symbol" aria-hidden="true">ⓘ</div><div><strong>계산 전 확인하세요</strong><p>표시된 값은 입력 조건에 따른 예상치입니다. 금리, 세율, 공제 조건과 실제 적용 기준을 확인한 뒤 결정에 활용하세요.</p></div></div>`;
+  return `${head(tool.title, tool.description, { slug: tool.slug, schema })}<body data-tool="${tool.slug}">${header}<main class="shell tool-main"><nav class="breadcrumbs" aria-label="현재 위치"><a href="/">홈</a><span aria-hidden="true">›</span><a href="/#category-${category.id}">${category.name}</a><span aria-hidden="true">›</span><span aria-current="page">${tool.title}</span></nav><section class="tool-intro"><div class="intro-icon" aria-hidden="true">${tool.icon}</div><div><span class="section-kicker">FREE CALCULATOR</span><h1>${tool.title}</h1><p>${tool.description}</p></div></section>${core}${guide}<section class="related-section"><div class="section-heading"><div><span class="section-kicker">NEXT STEP</span><h2>함께 쓰면 좋은 계산기</h2></div><a class="text-link" href="/#all-tools">전체 계산기 보기 →</a></div><div class="card-grid">${other.map(card).join('')}</div></section></main>${footer}</body></html>`;
 }
 
 await rm(dist, { recursive: true, force: true });
 await mkdir(path.join(dist, 'assets'), { recursive: true });
-await writeFile(path.join(dist, 'index.html'), renderHome({ head, header, footer, card, categories, tools }));
+await writeFile(path.join(dist, 'index.html'), renderHome({ head, header, footer, card, categories, tools, siteUrl }));
 for (const tool of tools) {
   await mkdir(path.join(dist, tool.slug), { recursive: true });
-  const form = `<form id="calculator-form" class="calculator-form"><div class="form-grid">${forms[tool.slug].map(fieldHtml).join('')}</div><button class="calculate-button" type="submit">계산하기 <span aria-hidden="true">→</span></button></form>`;
+  const form = tool.slug === 'calculator' ? '' : `<form id="calculator-form" class="calculator-form"><div class="form-grid">${forms[tool.slug].map(fieldHtml).join('')}</div><button class="calculate-button" type="submit">계산하기 <span aria-hidden="true">→</span></button></form>`;
   await writeFile(path.join(dist, tool.slug, 'index.html'), toolPage(tool).replace('<form id="calculator-form" class="calculator-form"></form>', form));
 }
-for (const file of ['app.js', 'catalog.js', 'forms.js', 'calculations.js', 'date-time.js', 'property.js', 'rates.js', 'style.css', 'favicon.svg']) {
+for (const file of ['app.js', 'catalog.js', 'forms.js', 'calculations.js', 'date-time.js', 'property.js', 'rates.js', 'general-calculator.js', 'general-ui.js', 'style.css', 'favicon.svg']) {
   await copyFile(path.join(root, 'src', file), path.join(dist, 'assets', file));
 }
 if (siteUrl) {

@@ -1,4 +1,5 @@
 export const categories = [
+  { id: 'general', name: '일반 계산', icon: '🧮', description: '사칙연산과 백분율을 바로 계산' },
   { id: 'finance', name: '대출 · 금융', icon: '🏦', description: '상환액과 저축 목표를 한눈에' },
   { id: 'work', name: '직장 · 급여', icon: '💼', description: '월급부터 퇴직금까지' },
   { id: 'property', name: '부동산', icon: '🏠', description: '구매 비용과 수익률 점검' },
@@ -25,7 +26,8 @@ export const tools = [
   { slug: 'work-time', title: '근무시간 계산기', icon: '💼', category: 'date-time', short: '휴게·야간근무까지', description: '출퇴근시각과 휴게시간으로 실제 근무시간을 계산합니다.', keywords: '출퇴근시간 계산기 야간근무' },
   { slug: 'playback-speed', title: '영상 배속 계산기', icon: '🎬', category: 'date-time', short: '시청시간과 종료 시각', description: '영상 길이와 재생 배속으로 실제 시청시간, 절약시간과 종료 시각을 계산합니다.', keywords: '1.5배속 시간 계산 영상 시간' },
   { slug: 'work-clock', title: '퇴근시계', icon: '🏁', category: 'date-time', short: '퇴근까지 남은 시간', description: '현재 시각을 기준으로 퇴근까지 남은 시간과 근무 진행률을 보여줍니다.', keywords: '퇴근시간 계산기 퇴근시계' },
-  { slug: 'salary-clock', title: '월급시계', icon: '💸', category: 'date-time', short: '오늘 번 돈을 실시간으로', description: '월급과 근무시간을 바탕으로 오늘 번 돈과 시간당·분당 수입을 추정합니다.', keywords: '시급 환산 오늘 번 돈 월급시계' }
+  { slug: 'salary-clock', title: '월급시계', icon: '💸', category: 'date-time', short: '오늘 번 돈을 실시간으로', description: '월급과 근무시간을 바탕으로 오늘 번 돈과 시간당·분당 수입을 추정합니다.', keywords: '시급 환산 오늘 번 돈 월급시계' },
+  { slug: 'calculator', title: '무료 온라인 계산기', icon: '🧮', category: 'general', short: '사칙연산·괄호·백분율을 빠르게', description: '사칙연산, 괄호, 백분율, 제곱과 제곱근을 키보드나 터치로 계산합니다.', keywords: '일반 계산기 사칙연산 퍼센트 계산기' }
 ];
 
 export const toolBySlug = Object.fromEntries(tools.map(tool => [tool.slug, tool]));

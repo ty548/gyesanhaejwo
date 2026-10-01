@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "verify:seo": "node scripts/audit-seo.mjs",
     "test": "node --test",
     "dev": "node scripts/dev.mjs"
   }

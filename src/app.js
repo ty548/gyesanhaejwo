@@ -3,6 +3,7 @@ import { calculators } from './calculations.js';
 import { tools } from './catalog.js';
 import { lookupRate } from './rates.js';
 import { currentLocalClock, resolveDateInput, resolveTimeInput } from './date-time.js';
+import { setupGeneralCalculators } from './general-ui.js';
 
 const $ = selector => document.querySelector(selector);
 const fmt = new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 });
@@ -124,6 +125,7 @@ function initializeForm(form, slug) {
 function setupCalculator() {
   const slug = document.body.dataset.tool;
   if (!slug) return;
+  if (slug === 'calculator') { setupRecent(slug); return; }
   const form = $('#calculator-form'), fields = forms[slug];
   if (!form.children.length) form.innerHTML = `<div class="form-grid">${fields.map(fieldHtml).join('')}</div><button class="calculate-button" type="submit">계산하기 <span aria-hidden="true">→</span></button>`;
   initializeForm(form, slug);
@@ -175,3 +177,4 @@ function setupCalculator() {
 setupSearch();
 setupRecent();
 setupCalculator();
+setupGeneralCalculators();
