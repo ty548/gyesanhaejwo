@@ -4,6 +4,7 @@ import { calculators } from './calculations.js';
 const $ = selector => document.querySelector(selector);
 const fmt = new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 0 });
 const decimal = new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 2 });
+let rateRequest = 0;
 
 function setupSearch() {
   const input = $('#site-search');
@@ -37,6 +38,7 @@ function formatValue(value, type, slug, values) {
 
 async function fetchRate(form) {
   const from = form.elements.from.value, to = form.elements.to.value;
+  const request = ++rateRequest;
   const status = $('#rate-status');
   if (from === to) { form.elements.rate.value = '1'; status.textContent = '같은 통화의 환율은 1입니다.'; form.requestSubmit(); return; }
   status.textContent = '최신 기준 환율을 불러오는 중…';
@@ -44,12 +46,13 @@ async function fetchRate(form) {
     const response = await fetch(`https://api.frankfurter.dev/v2/rate/${from.toLowerCase()}/${to.toLowerCase()}`);
     if (!response.ok) throw new Error('환율 조회 실패');
     const data = await response.json();
+    if (request !== rateRequest) return;
     if (!(data.rate > 0)) throw new Error('환율 정보 없음');
     form.elements.rate.value = data.rate;
     status.textContent = `기준 환율 ${data.date} · Frankfurter 제공. 은행 고시 환율과 다를 수 있습니다.`;
     form.requestSubmit();
   } catch {
-    status.textContent = '자동 조회에 실패했습니다. 환율을 직접 입력해 주세요.';
+    if (request === rateRequest) status.textContent = '자동 조회에 실패했습니다. 환율을 직접 입력해 주세요.';
   }
 }
 
@@ -58,27 +61,40 @@ function setupCalculator() {
   if (!slug) return;
   const form = $('#calculator-form'), fields = forms[slug];
   if (!form.children.length) form.innerHTML = `<div class="form-grid">${fields.map(fieldHtml).join('')}</div><button class="calculate-button" type="submit">계산하기 <span aria-hidden="true">→</span></button>`;
+  const clearResult = () => {
+    $('#result-list').innerHTML = '<p class="result-placeholder">입력값을 확인하면 결과가 여기에 표시됩니다.</p>';
+    $('#result-note').textContent = '';
+    $('#result-panel').classList.remove('has-result');
+  };
   const calculate = event => {
     event?.preventDefault();
     const values = Object.fromEntries(new FormData(form));
     const error = $('#form-error');
     error.textContent = '';
     try {
-      if (!form.checkValidity()) return;
+      if (!form.checkValidity()) {
+        error.textContent = '필수 항목과 입력 범위를 확인해 주세요.';
+        clearResult();
+        return;
+      }
       const result = calculators[slug](values);
       if (result.rows.some(([,value]) => typeof value === 'number' && !Number.isFinite(value))) throw new Error('입력값을 확인해 주세요.');
       $('#result-list').innerHTML = result.rows.map(([label,value,type], index) => `<div class="result-row ${index === 0 ? 'featured' : ''}"><span>${label}</span><strong>${formatValue(value,type,slug,values)}</strong></div>`).join('');
       $('#result-note').textContent = result.note;
       $('#result-panel').classList.add('has-result');
-    } catch (problem) { error.textContent = problem.message || '입력값을 확인해 주세요.'; }
+    } catch (problem) { error.textContent = problem.message || '입력값을 확인해 주세요.'; clearResult(); }
   };
   form.addEventListener('submit', calculate);
-  form.addEventListener('input', () => { if (slug !== 'exchange') calculate(); });
-  form.addEventListener('change', () => { if (slug !== 'exchange') calculate(); });
+  form.addEventListener('input', () => { if (slug !== 'exchange') calculate(); else clearResult(); });
+  form.addEventListener('change', () => { if (slug !== 'exchange') calculate(); else clearResult(); });
   if (slug === 'exchange') {
     $('#rate-tools').hidden = false;
     $('#fetch-rate').addEventListener('click', () => fetchRate(form));
     for (const key of ['from','to']) form.elements[key].addEventListener('change', () => { form.elements.rate.value = ''; fetchRate(form); });
+    form.elements.rate.addEventListener('input', () => {
+      rateRequest++;
+      $('#rate-status').textContent = '직접 입력한 환율을 사용합니다.';
+    });
     fetchRate(form);
   } else calculate();
 }
