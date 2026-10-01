@@ -19,6 +19,9 @@ const schemaOf = html => [...html.matchAll(/<script type="application\/ld\+json"
 const home = await read('index.html');
 assert.match(home, /<h1>무료 온라인 <em>계산기<\/em><\/h1>/);
 assert.match(home, /<meta name="google-site-verification" content="M87cSaYmzx1g5y_fo6LFVriQayr94mz8lCJIzb09aq4">/);
+const naverVerificationTag = '<meta name="naver-site-verification" content="8477e7e34e2c7a87d3f245841051d52404cc2e48">';
+assert.equal(home.split(naverVerificationTag).length - 1, 1, 'Naver verification tag must appear exactly once');
+assert.ok(home.indexOf(naverVerificationTag) < home.indexOf('</head>'), 'Naver verification tag must be in head');
 assert.match(home, new RegExp(`<link rel="canonical" href="${origin}/"`));
 assert.ok(home.includes(`<meta property="og:url" content="${origin}/"`));
 assert.match(home, /href="\/calculator\/"/);
@@ -46,6 +49,7 @@ for (const tool of tools) {
     [3, tool.title, url]
   ], `${tool.slug}: breadcrumb data`);
   assert.ok(!/noindex/i.test(html), `${tool.slug}: noindex`);
+  assert.ok(!html.includes('naver-site-verification'), `${tool.slug}: Naver tag should only appear on home`);
 }
 
 const robots = await read('robots.txt');
