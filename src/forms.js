@@ -15,3 +15,11 @@ export const forms = {
   'commercial-property': [money('price', '상가 매매가', 50000), number('taxRate', '취득 관련 합산 세율', 4.6, '%'), number('brokerageRate', '중개보수율 (부가세 별도)', 0.9, '%'), money('other', '등기·기타 비용', 300), money('deposit', '임차 보증금', 5000), money('loan', '대출금', 25000), number('rate', '대출 연 금리', 5, '%'), money('rent', '월 임대료', 300), money('cost', '월 운영비', 30), money('vacancy', '연 공실·수선 충당액', 300)],
   exchange: [number('amount', '환전할 금액', 1000, ''), select('from', '보내는 통화', [['USD', 'USD 미국 달러'], ['KRW', 'KRW 한국 원'], ['EUR', 'EUR 유로'], ['JPY', 'JPY 일본 엔'], ['CNY', 'CNY 중국 위안']]), select('to', '받는 통화', [['KRW', 'KRW 한국 원'], ['USD', 'USD 미국 달러'], ['EUR', 'EUR 유로'], ['JPY', 'JPY 일본 엔'], ['CNY', 'CNY 중국 위안']]), number('rate', '1 보내는 통화당 받는 통화 환율', '', '', 0), number('fee', '환전 수수료', 1, '%')]
 };
+
+export function fieldHtml(field) {
+  const id = `field-${field.key}`;
+  const control = field.type === 'select'
+    ? `<select id="${id}" name="${field.key}">${field.options.map(([value,label]) => `<option value="${value}">${label}</option>`).join('')}</select>`
+    : `<input id="${id}" name="${field.key}" type="${field.type}" value="${field.value}" ${field.type === 'number' ? `min="${field.min}" step="${field.step}" inputmode="decimal"` : ''} required>`;
+  return `<div class="field"><label for="${id}">${field.label}</label><div class="control">${control}${field.unit ? `<span class="unit">${field.unit}</span>` : ''}</div>${field.hint ? `<small class="hint">${field.hint}</small>` : ''}</div>`;
+}

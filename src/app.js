@@ -1,4 +1,4 @@
-import { forms } from './forms.js';
+import { forms, fieldHtml } from './forms.js';
 import { calculators } from './calculations.js';
 
 const $ = selector => document.querySelector(selector);
@@ -24,14 +24,6 @@ function setupSearch() {
   input.addEventListener('input', update);
   $('#search-form').addEventListener('submit', event => { event.preventDefault(); update(); $('#all-tools').scrollIntoView({ behavior: 'smooth' }); });
   document.querySelectorAll('[data-query]').forEach(button => button.addEventListener('click', () => { input.value = button.dataset.query; update(); $('#all-tools').scrollIntoView({ behavior: 'smooth' }); }));
-}
-
-function fieldHtml(field) {
-  const id = `field-${field.key}`;
-  const control = field.type === 'select'
-    ? `<select id="${id}" name="${field.key}">${field.options.map(([value,label]) => `<option value="${value}">${label}</option>`).join('')}</select>`
-    : `<input id="${id}" name="${field.key}" type="${field.type}" value="${field.value}" ${field.type === 'number' ? `min="${field.min}" step="${field.step}" inputmode="decimal"` : ''} required>`;
-  return `<div class="field"><label for="${id}">${field.label}</label><div class="control">${control}${field.unit ? `<span class="unit">${field.unit}</span>` : ''}</div>${field.hint ? `<small class="hint">${field.hint}</small>` : ''}</div>`;
 }
 
 function formatValue(value, type, slug, values) {
@@ -65,7 +57,7 @@ function setupCalculator() {
   const slug = document.body.dataset.tool;
   if (!slug) return;
   const form = $('#calculator-form'), fields = forms[slug];
-  form.innerHTML = `<div class="form-grid">${fields.map(fieldHtml).join('')}</div><button class="calculate-button" type="submit">계산하기 <span aria-hidden="true">→</span></button>`;
+  if (!form.children.length) form.innerHTML = `<div class="form-grid">${fields.map(fieldHtml).join('')}</div><button class="calculate-button" type="submit">계산하기 <span aria-hidden="true">→</span></button>`;
   const calculate = event => {
     event?.preventDefault();
     const values = Object.fromEntries(new FormData(form));
