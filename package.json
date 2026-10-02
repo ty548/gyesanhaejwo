@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "verify:seo": "node scripts/audit-seo.mjs",
+    "verify:links": "node scripts/audit-links.mjs",
     "test": "node --test",
     "dev": "node scripts/dev.mjs"
   }

@@ -101,7 +101,10 @@ export function clockProgress(start, end, breakMinutes, nowSeconds) {
   const x = shiftMinutes(start, end, breakMinutes);
   const begin = timeMinutes(start) * 60, finish = begin + x.stay * 60;
   let current = num(nowSeconds, '현재 시각', 0, 86399);
-  if (x.overnight && current < timeMinutes(end) * 60) current += 86400;
+  if (x.overnight) {
+    if (current < timeMinutes(end) * 60) current += 86400;
+    else if (current < begin) current = finish;
+  }
   const elapsed = Math.max(0, Math.min(finish - begin, current - begin));
   const state = current < begin ? 'before' : current >= finish ? 'after' : 'during';
   return { ...x, state, remainingSeconds: state === 'before' ? begin - current : Math.max(0, finish - current), elapsedSeconds: elapsed, progress: elapsed / (x.stay * 60) * 100, workedSeconds: elapsed * x.worked / x.stay };

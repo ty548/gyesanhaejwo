@@ -64,3 +64,20 @@ test('월급시계 환산과 출근 전·근무 중·퇴근 후', () => {
   assert.equal(salaryClock({ ...values, nowSeconds: 8 * 3600 }).rows[0][1], 0);
   assert.equal(salaryClock({ ...values, nowSeconds: 19 * 3600 }).rows[0][1], 150000);
 });
+
+test('야간근무 종료 뒤 다음 출근 전까지 퇴근 완료와 당일 수입을 유지', () => {
+  const start = '22:00', end = '06:00', rest = 60;
+  const justBeforeEnd = clockProgress(start, end, rest, 5 * 3600 + 59 * 60);
+  assert.equal(justBeforeEnd.state, 'during');
+  assert.ok(justBeforeEnd.progress > 99 && justBeforeEnd.progress < 100);
+  const values = { monthlySalary: 3000000, workDays: 20, dailyHours: 7, startTime: start, endTime: end, breakMinutes: rest };
+  for (const seconds of [6 * 3600, 6 * 3600 + 60, 21 * 3600 + 59 * 60]) {
+    const result = clockProgress(start, end, rest, seconds);
+    assert.equal(result.state, 'after', `현재 시각 ${seconds}초`);
+    assert.equal(result.remainingSeconds, 0);
+    assert.equal(result.progress, 100);
+    assert.equal(salaryClock({ ...values, nowSeconds: seconds }).rows[0][1], 150000);
+  }
+  assert.equal(clockProgress(start, end, rest, 22 * 3600).state, 'during');
+  assert.equal(salaryClock({ ...values, nowSeconds: 22 * 3600 }).rows[0][1], 0);
+});
