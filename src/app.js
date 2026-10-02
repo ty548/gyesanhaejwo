@@ -1,7 +1,7 @@
 import { forms, fieldHtml } from './forms.js';
 import { calculators } from './calculations.js';
 import { tools } from './catalog.js';
-import { lookupRate } from './rates.js';
+import { lookupRate, rateErrorMessages } from './rates.js';
 import { currentLocalClock, resolveDateInput, resolveTimeInput } from './date-time.js';
 import { setupGeneralCalculators } from './general-ui.js';
 
@@ -76,7 +76,7 @@ async function fetchRate(form) {
   const data = await lookupRate(fetch, from, to);
   if (request !== rateRequest) return;
   if (data.rate === null) {
-    status.textContent = '자동 환율 조회를 지원하지 않는 통화입니다. 직접 환율을 입력해 주세요.';
+    status.textContent = rateErrorMessages[data.error];
     return;
   }
   form.elements.rate.value = data.rate;

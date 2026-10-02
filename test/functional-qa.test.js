@@ -54,8 +54,8 @@ test('부가세는 매출 0과 매입세액 초과를 처리', () => {
 test('DSR·LTV는 0 대출과 0 분모를 구분', () => {
   const input = { annual: 6000, home: 60000, loan: 0, rate: 4, years: 30, existing: 0, dsrLimit: 40, ltvLimit: 70 };
   const result = calculators['dsr-ltv'](input);
-  close(row(result, 'DSR'), 0);
-  close(row(result, 'LTV'), 0);
+  close(row(result, '단순 DSR'), 0);
+  close(row(result, '단순 LTV'), 0);
   assert.throws(() => calculators['dsr-ltv']({ ...input, annual: 0 }), /연소득/);
   assert.throws(() => calculators['dsr-ltv']({ ...input, home: 0 }), /주택가치/);
 });

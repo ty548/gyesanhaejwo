@@ -78,17 +78,19 @@ export const calculators = {
     const incomeTax = Math.max(0, n(v.incomeTax)), localTax = incomeTax * .1;
     const insurance = pension + health + care + employment;
     if (insurance + incomeTax + localTax > gross) throw new Error('보험료와 입력한 소득세가 월 세전급여를 초과합니다.');
-    return { rows: [['예상 월 실수령액', gross - insurance - incomeTax - localTax, 'money'], ['월 세전급여', gross, 'money'], ['4대보험 근로자 부담', insurance, 'money'], ['입력한 소득세·지방소득세', incomeTax + localTax, 'money']], note: '소득세는 근로소득 간이세액표·부양가족 등에 따라 달라집니다. 소득세 입력란에 급여명세서의 월 원천징수액을 넣어 보세요.' };
+    return { rows: [['예상 월 실수령액', gross - insurance - incomeTax - localTax, 'money'], ['월 세전급여', gross, 'money'], ['4대보험 근로자 부담', insurance, 'money'], ['입력한 소득세·지방소득세', incomeTax + localTax, 'money']], note: '2026년 보험료율과 2026년 7월 국민연금 상·하한을 사용한 추정치입니다. 실제 신고 기준소득월액, 원 단위 처리와 각종 공제는 다를 수 있습니다. 소득세에는 급여명세서의 월 원천징수액을 입력하세요.' };
   },
   hourly: v => {
     const hourly = n(v.hourly), hours = n(v.hours);
     if (hours > 40) throw new Error('주 소정근로시간은 40시간 이내로 입력해 주세요. 연장근로는 별도 계산이 필요합니다.');
     if (!['yes', 'no'].includes(v.attendance)) throw new Error('개근 여부를 선택해 주세요.');
     const eligible = hours >= 15 && v.attendance === 'yes';
-    const holidayHours = eligible ? hours / 5 : 0;
+    const enteredHolidayHours = v.holidayHours === '' || v.holidayHours == null ? hours / 5 : n(v.holidayHours);
+    if (enteredHolidayHours > 8) throw new Error('주휴 유급시간은 0~8시간으로 입력해 주세요.');
+    const holidayHours = eligible ? enteredHolidayHours : 0;
     const weekly = hourly * (hours + holidayHours);
     const monthlyHours = Math.round((hours + holidayHours) * 365 / 7 / 12);
-    return { rows: [['예상 월급', hourly * monthlyHours, 'money'], ['주휴수당 / 주', hourly * holidayHours, 'money'], ['주급', weekly, 'money'], ['주휴시간', holidayHours, 'hours'], ['월 환산 시간', monthlyHours, 'hours']], note: '월 환산 시간은 달력 평균을 정수 시간으로 반올림합니다. 주휴수당은 4주 평균 주 15시간 이상이고 소정근로일을 개근한 경우로 계산합니다.' };
+    return { rows: [['예상 월급', hourly * monthlyHours, 'money'], ['주휴수당 / 주', hourly * holidayHours, 'money'], ['주급', weekly, 'money'], ['주휴시간', holidayHours, 'hours'], ['월 환산 시간', monthlyHours, 'hours']], note: `2026년 최저임금은 시간당 10,320원입니다. 주휴시간은 ${v.holidayHours === '' || v.holidayHours == null ? '주 5일 균등 근무를 가정한 추정치' : '직접 입력한 시간'}입니다. 실제 소정근로일·시간 배치에 따라 확인하세요. 월 환산 시간은 달력 평균을 정수 시간으로 반올림합니다.` };
   },
   savings: v => {
     const months = n(v.months), rate = pct(v.rate), tax = percent(v.tax);
@@ -110,7 +112,7 @@ export const calculators = {
     const dsrLimit = percent(v.dsrLimit) * 100, ltvLimit = percent(v.ltvLimit) * 100;
     const annualPayment = loanPayment(loan, n(v.rate), monthsFromYears(v.years)) * 12 + won(v.existing);
     const dsr = annualPayment / annual * 100, ltv = loan / home * 100;
-    return { rows: [['DSR', dsr, 'percent'], ['LTV', ltv, 'percent'], ['연간 원리금 상환액', annualPayment, 'money'], ['입력 한도 내 여부', dsr <= dsrLimit && ltv <= ltvLimit ? '범위 내' : '초과', 'text']], note: '신규 대출은 원리금균등 방식의 월 상환액 12회로 단순 계산합니다. 실제 심사는 스트레스 금리, 대출 유형, 지역·보유주택 규정 등을 별도로 적용합니다. 입력 한도는 비교용입니다.' };
+    return { rows: [['단순 DSR', dsr, 'percent'], ['단순 LTV', ltv, 'percent'], ['연간 원리금 상환액', annualPayment, 'money'], ['입력 한도와 비교', dsr <= dsrLimit && ltv <= ltvLimit ? '입력 범위 내' : '입력 범위 초과', 'text']], note: '참고용 시뮬레이션입니다. 신규 대출은 입력 금리로 계산한 원리금균등 월 상환액 12회를 사용합니다. 스트레스 DSR, 대출 유형·지역·보유주택·정책대출의 예외를 반영하지 않으므로 대출 승인 여부를 뜻하지 않습니다.' };
   },
   'apartment-cost': v => {
     return apartmentCost(v, loanPayment);

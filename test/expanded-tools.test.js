@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { calculators, loanPayment, loanSchedule } from '../src/calculations.js';
 import { loanBreakdown } from '../src/property.js';
-import { lookupRate } from '../src/rates.js';
+import { lookupRate, rateErrorMessages, rateErrors } from '../src/rates.js';
 import { currencies } from '../src/forms.js';
 
 const row = (result, label) => result.rows.find(([name]) => name === label)?.[1];
@@ -49,8 +49,19 @@ test('환율 직접 입력·수수료 우대·동일 통화와 18개 통화', ()
   assert.equal(calculators.exchange({ amount: 100, from: 'USD', to: 'USD', rate: 9, fee: 9 }).rows[0][1], 100);
 });
 
-test('환율 API 실패·미지원 응답은 직접 입력 fallback', async () => {
-  assert.deepEqual(await lookupRate(async () => { throw new Error('offline'); }, 'USD', 'KRW'), { rate: null, date: null });
-  assert.deepEqual(await lookupRate(async () => ({ ok: false }), 'USD', 'KRW'), { rate: null, date: null });
-  assert.deepEqual(await lookupRate(async () => ({ ok: true, json: async () => ({ rate: 1400, date: '2026-10-01' }) }), 'USD', 'KRW'), { rate: 1400, date: '2026-10-01' });
+test('환율 API 오류 유형은 각각 직접 입력 안내로 연결', async () => {
+  const cases = [
+    [async () => { throw new Error('offline'); }, rateErrors.NETWORK_ERROR],
+    [async () => ({ ok: false, status: 503 }), rateErrors.API_ERROR],
+    [async () => ({ ok: false, status: 422, json: async () => ({ message: 'invalid currency: XXX' }) }), rateErrors.UNSUPPORTED_CURRENCY],
+    [async () => ({ ok: false, status: 404, json: async () => ({ message: 'rate not found' }) }), rateErrors.MANUAL_RATE_REQUIRED],
+    [async () => ({ ok: true, json: async () => ({ rate: 0, date: '2026-10-01' }) }), rateErrors.INVALID_RATE],
+    [async () => ({ ok: true, json: async () => { throw new Error('bad json'); } }), rateErrors.INVALID_RATE]
+  ];
+  for (const [fetcher, error] of cases) {
+    assert.deepEqual(await lookupRate(fetcher, 'USD', 'KRW'), { rate: null, date: null, error });
+    assert.match(rateErrorMessages[error], /직접 환율을 입력/);
+  }
+  assert.deepEqual(await lookupRate(async () => ({ ok: true, json: async () => ({ rate: 1400, date: '2026-10-01' }) }), 'USD', 'KRW'), { rate: 1400, date: '2026-10-01', error: null });
+  assert.deepEqual(await lookupRate(async () => { throw new Error('must not fetch'); }, 'KRW', 'KRW'), { rate: 1, date: null, error: null });
 });
