@@ -3,11 +3,13 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tools } from '../src/catalog.js';
+import { trustPages } from '../src/trust-pages.js';
 
 const dist = path.resolve(fileURLToPath(new URL('../dist/', import.meta.url)));
 const home = await readFile(path.join(dist, 'index.html'), 'utf8');
 let checked = 0;
-for (const slug of ['', ...tools.map(tool => tool.slug)]) {
+const slugs = ['', ...tools.map(tool => tool.slug), ...trustPages.map(page => page.slug)];
+for (const slug of slugs) {
   const page = await readFile(path.join(dist, slug, 'index.html'), 'utf8');
   for (const [, href] of page.matchAll(/href="(\/[^"?]*)"/g)) {
     const [pathname, anchor] = href.split('#');
@@ -20,4 +22,4 @@ for (const slug of ['', ...tools.map(tool => tool.slug)]) {
     checked++;
   }
 }
-console.log(`Internal link audit PASS: ${checked} links across 20 pages.`);
+console.log(`Internal link audit PASS: ${checked} links across ${slugs.length} pages.`);

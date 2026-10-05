@@ -5,6 +5,7 @@ import { tools, categories } from '../src/catalog.js';
 import { forms, fieldHtml } from '../src/forms.js';
 import { renderHome } from '../src/home.js';
 import { generalCalculatorMarkup } from '../src/general-page.js';
+import { trustPages } from '../src/trust-pages.js';
 
 const root = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const dist = path.join(root, 'dist');
@@ -25,7 +26,8 @@ const head = (title, description, { slug, home = false, schema } = {}) => {
 };
 const navLinks = [['전체 계산기', '/#all-tools'], ['인기 계산기', '/#popular'], ['날짜·시간', '/#category-date-time'], ['부동산', '/#category-property'], ['대출·금융', '/#category-finance']];
 const header = `<header class="site-header"><div class="shell header-inner"><a class="brand" href="/" aria-label="계산해줘 홈"><span class="brand-mark" aria-hidden="true">⌗</span><span>계산해줘</span></a><nav class="nav-links" aria-label="주요 메뉴">${navLinks.map(([label,url]) => `<a href="${url}">${label}</a>`).join('')}</nav><details class="mobile-menu"><summary>메뉴</summary><nav aria-label="모바일 메뉴">${navLinks.map(([label,url]) => `<a href="${url}">${label}</a>`).join('')}</nav></details></div></header>`;
-const footer = `<footer class="site-footer"><div class="shell footer-inner"><div><strong>계산해줘</strong><p>생활 속 숫자를 더 쉽고 명확하게.</p></div><p>계산 결과는 참고용입니다. 실제 계약·신고·심사에는 해당 기관의 최신 기준을 확인하세요.</p><small>© 2026 계산해줘</small></div></footer>`;
+const footerLinks = trustPages.map(page => '<a href="/' + page.slug + '/">' + page.navLabel + '</a>').join('');
+const footer = '<footer class="site-footer"><div class="shell footer-inner"><div class="footer-brand"><strong>계산해줘</strong><p>생활 속 숫자를 더 쉽고 명확하게.</p><small>© 2026 계산해줘</small></div><p class="footer-note">계산 결과는 참고용입니다. 실제 계약·신고·심사에는 해당 기관의 최신 기준을 확인하세요.</p><nav class="footer-links" aria-label="사이트 안내">' + footerLinks + '</nav></div></footer>';
 const guides = {
   loan: ['원리금균등은 같은 금액을 매월 납부하고, 원금균등은 원금을 같은 금액씩 갚아 월 납입액이 점차 줄어듭니다.', '대출금·연 금리·상환 기간을 입력해 첫 달 상환액과 전체 기간의 이자를 비교하세요.'],
   severance: ['퇴직금은 적용 1일 임금 × 30일 × 계속근로일수 ÷ 365로 예상합니다. 퇴직 전 3개월 평균임금과 입력한 1일 통상임금 중 큰 금액을 적용합니다.', '퇴직일은 마지막 근무일 다음 날로 입력합니다. 제외기간 등 특수한 산정은 반영하지 않습니다.'],
@@ -60,6 +62,15 @@ const sources = {
 };
 
 
+function trustPage(page) {
+  const url = siteUrl + '/' + page.slug + '/';
+  const schema = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '홈', item: siteUrl + '/' },
+    { '@type': 'ListItem', position: 2, name: page.title, item: url }
+  ] };
+  return head(page.title, page.description, { slug: page.slug, schema }) + '<body data-page="trust">' + header + '<main class="shell policy-main"><nav class="breadcrumbs" aria-label="현재 위치"><a href="/">홈</a><span aria-hidden="true">›</span><span aria-current="page">' + esc(page.title) + '</span></nav><section class="policy-hero"><span class="section-kicker">SERVICE INFO</span><h1>' + esc(page.title) + '</h1><p>' + esc(page.description) + '</p></section><article class="policy-content">' + page.body + '</article></main>' + footer + '</body></html>';
+}
+
 function toolPage(tool) {
   const category = categories.find(item => item.id === tool.category);
   const crumbs = [
@@ -86,12 +97,16 @@ for (const tool of tools) {
   const form = tool.slug === 'calculator' ? '' : `<form id="calculator-form" class="calculator-form"><div class="form-grid">${forms[tool.slug].map(fieldHtml).join('')}</div><button class="calculate-button" type="submit">계산하기 <span aria-hidden="true">→</span></button></form>`;
   await writeFile(path.join(dist, tool.slug, 'index.html'), toolPage(tool).replace('<form id="calculator-form" class="calculator-form"></form>', form));
 }
+for (const page of trustPages) {
+  await mkdir(path.join(dist, page.slug), { recursive: true });
+  await writeFile(path.join(dist, page.slug, 'index.html'), trustPage(page));
+}
 for (const file of ['app.js', 'catalog.js', 'forms.js', 'calculations.js', 'date-time.js', 'property.js', 'rates.js', 'general-calculator.js', 'general-ui.js', 'style.css', 'favicon.svg']) {
   await copyFile(path.join(root, 'src', file), path.join(dist, 'assets', file));
 }
 if (siteUrl) {
-  const urls = ['/', ...tools.map(tool => `/${tool.slug}/`)];
+  const urls = ['/', ...tools.map(tool => '/' + tool.slug + '/'), ...trustPages.map(page => '/' + page.slug + '/')];
   await writeFile(path.join(dist, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map(url => `<url><loc>${esc(siteUrl + url)}</loc></url>`).join('')}</urlset>\n`);
 }
 await writeFile(path.join(dist, 'robots.txt'), `User-agent: *\nAllow: /\n${siteUrl ? `Sitemap: ${siteUrl}/sitemap.xml\n` : ''}`);
-console.log(`Built ${tools.length + 1} pages in dist/`);
+console.log(`Built ${tools.length + trustPages.length + 1} pages in dist/`);
