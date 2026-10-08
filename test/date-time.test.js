@@ -65,19 +65,40 @@ test('월급시계 환산과 출근 전·근무 중·퇴근 후', () => {
   assert.equal(salaryClock({ ...values, nowSeconds: 19 * 3600 }).rows[0][1], 150000);
 });
 
-test('야간근무 종료 뒤 다음 출근 전까지 퇴근 완료와 당일 수입을 유지', () => {
+test('야간근무 자동 추정은 퇴근 완료와 다음 출근 전을 구분', () => {
   const start = '22:00', end = '06:00', rest = 60;
-  const justBeforeEnd = clockProgress(start, end, rest, 5 * 3600 + 59 * 60);
-  assert.equal(justBeforeEnd.state, 'during');
-  assert.ok(justBeforeEnd.progress > 99 && justBeforeEnd.progress < 100);
   const values = { monthlySalary: 3000000, workDays: 20, dailyHours: 7, startTime: start, endTime: end, breakMinutes: rest };
-  for (const seconds of [6 * 3600, 6 * 3600 + 60, 21 * 3600 + 59 * 60]) {
+  const stillWorking = clockProgress(start, end, rest, 5 * 3600 + 59 * 60);
+  assert.equal(stillWorking.state, 'during');
+  assert.ok(stillWorking.progress > 99 && stillWorking.progress < 100);
+  for (const seconds of [6 * 3600, 7 * 3600]) {
     const result = clockProgress(start, end, rest, seconds);
-    assert.equal(result.state, 'after', `현재 시각 ${seconds}초`);
-    assert.equal(result.remainingSeconds, 0);
+    assert.equal(result.state, 'after');
     assert.equal(result.progress, 100);
     assert.equal(salaryClock({ ...values, nowSeconds: seconds }).rows[0][1], 150000);
   }
+  for (const seconds of [14 * 3600, 21 * 3600, 21 * 3600 + 59 * 60]) {
+    const result = clockProgress(start, end, rest, seconds);
+    assert.equal(result.state, 'before');
+    assert.equal(result.progress, 0);
+    assert.equal(result.remainingSeconds, 22 * 3600 - seconds);
+    assert.equal(salaryClock({ ...values, nowSeconds: seconds }).rows[0][1], 0);
+  }
   assert.equal(clockProgress(start, end, rest, 22 * 3600).state, 'during');
-  assert.equal(salaryClock({ ...values, nowSeconds: 22 * 3600 }).rows[0][1], 0);
+});
+
+test('명시 근무 시작일은 날짜 경계를 정확하게 계산', () => {
+  const start = '22:00', end = '06:00', rest = 60;
+  const yesterday = '2026-10-07', today = '2026-10-08';
+  const during = clockProgress(start, end, rest, 5 * 3600, yesterday, today);
+  assert.equal(during.state, 'during');
+  assert.equal(during.progress, 87.5);
+  assert.equal(clockProgress(start, end, rest, 21 * 3600, yesterday, today).state, 'after');
+  const upcoming = clockProgress(start, end, rest, 21 * 3600, today, today);
+  assert.equal(upcoming.state, 'before');
+  assert.equal(upcoming.remainingSeconds, 3600);
+  const pay = { monthlySalary: 3000000, workDays: 20, dailyHours: 7, startTime: start, endTime: end, breakMinutes: rest, nowSeconds: 21 * 3600, today };
+  assert.equal(salaryClock({ ...pay, shiftDate: today }).rows[0][1], 0);
+  assert.equal(salaryClock({ ...pay, shiftDate: yesterday }).rows[0][1], 150000);
+  assert.throws(() => clockProgress(start, end, rest, 21 * 3600, '2026-02-29', today), /존재/);
 });
