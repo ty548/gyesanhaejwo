@@ -37,9 +37,9 @@ export const forms = {
   'date-offset': [date('base', '기준일', 'today'), number('days', '이동할 일수', 100, '일', 0, 1, 365000), select('direction', '방향', [['after', '일 후'], ['before', '일 전']])],
   dday: [date('target', '목표일', 'today'), date('start', '시작일 (비우면 오늘)', '', true)],
   'business-days': [date('start', '시작일', 'today'), date('end', '종료일', 'today'), select('includeStart', '시작일 포함', [['yes', '포함'], ['no', '미포함']])],
-  'work-time': [time('startTime', '출근시각', '09:00'), time('endTime', '퇴근시각', '18:00'), number('breakMinutes', '휴게시간', 60, '분', 0, 1, 1439)],
+  'work-time': [time('startTime', '출근시각', '09:00'), time('endTime', '퇴근시각', '18:00'), number('breakMinutes', '휴게시간', 60, '분', 0, 1, 1439), { ...date('shiftDate', '근무 시작일 (선택)', '', true), hint: '야간근무 시작일을 선택하면 해당 근무의 누적 수입을 계산합니다. 비우면 자동 추정합니다.' }],
   'playback-speed': [number('hours', '영상 시간', 2, '시간', 0, 1, 999), number('minutes', '영상 분', 30, '분', 0, 1, 59), { key: 'speed', label: '재생 배속', type: 'pill', options: [['1', '1.0×'], ['1.25', '1.25×'], ['1.5', '1.5×'], ['1.75', '1.75×'], ['2', '2.0×'], ['custom', '직접 입력']] }, number('customSpeed', '직접 입력 배속', 1.5, '×', .1, 'any', 16), time('startTime', '시작 시각', 'now')],
-  'work-clock': [time('startTime', '출근시각', '09:00'), time('endTime', '퇴근시각', '18:00'), number('breakMinutes', '점심·휴게시간', 60, '분', 0, 1, 1439)],
+  'work-clock': [time('startTime', '출근시각', '09:00'), time('endTime', '퇴근시각', '18:00'), number('breakMinutes', '점심·휴게시간', 60, '분', 0, 1, 1439), { ...date('shiftDate', '근무 시작일 (선택)', '', true), hint: '야간근무는 근무 시작일을 선택하면 해당 근무를 정확히 추적합니다. 비우면 자동 추정합니다.' }],
   'salary-clock': [select('salaryType', '월급 기준', [['gross', '세전 월급'], ['net', '실수령 월급']]), number('monthlySalary', '월급', 3000000, '원'), number('workDays', '월 근무일수', 22, '일', 1, 1, 31), number('dailyHours', '1일 근무시간', 8, '시간', .1, 'any', 23.9), time('startTime', '출근시각', '09:00'), time('endTime', '퇴근시각', '18:00'), number('breakMinutes', '휴게시간', 60, '분', 0, 1, 1439)]
 };
 

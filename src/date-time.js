@@ -97,13 +97,26 @@ export function playbackSpeed(v) {
   const endText = `${String(Math.floor(endMinute / 60)).padStart(2, '0')}:${String(endMinute % 60).padStart(2, '0')}${endDay ? ` (+${endDay}일)` : ''}`;
   return { rows: [['종료 예상 시각', endText, 'text'], ['실제 시청시간', duration(actual), 'text'], [saved < 0 ? '추가 소요시간' : '절약시간', duration(saved), 'text'], ['시간 절약률', (1 - 1 / speed) * 100, 'percent']], note: `시작 시각 ${startTime} 기준. 배속은 재생시간만 바꾸며 중간 정지는 포함하지 않습니다.` };
 }
-export function clockProgress(start, end, breakMinutes, nowSeconds) {
+export function clockProgress(start, end, breakMinutes, nowSeconds, shiftDate = '', today = '') {
   const x = shiftMinutes(start, end, breakMinutes);
   const begin = timeMinutes(start) * 60, finish = begin + x.stay * 60;
-  let current = num(nowSeconds, '현재 시각', 0, 86399);
-  if (x.overnight) {
-    if (current < timeMinutes(end) * 60) current += 86400;
-    else if (current < begin) current = finish;
+  const seconds = num(nowSeconds, '현재 시각', 0, 86399);
+  let current = seconds;
+  if (shiftDate) {
+    // Explicit start date identifies a particular shift, even across midnight.
+    const startAt = dateUtc(shiftDate).getTime() / 1000 + begin;
+    const nowAt = dateUtc(today || currentLocalClock().today).getTime() / 1000 + seconds;
+    current = begin + (nowAt - startAt);
+  } else if (x.overnight) {
+    const endSeconds = timeMinutes(end) * 60;
+    if (seconds < endSeconds) {
+      current += 86400; // Overnight shift still in progress.
+    } else if (seconds < begin) {
+      // Approximate the next-shift switch at the middle of the rest interval.
+      // Users can select a shift start date to avoid this approximation.
+      const turnover = (endSeconds + begin) / 2;
+      if (seconds < turnover) current = finish;
+    }
   }
   const elapsed = Math.max(0, Math.min(finish - begin, current - begin));
   const state = current < begin ? 'before' : current >= finish ? 'after' : 'during';
@@ -111,18 +124,18 @@ export function clockProgress(start, end, breakMinutes, nowSeconds) {
 }
 const remainingText = seconds => `${Math.floor(seconds / 3600)}시간 ${Math.floor(seconds % 3600 / 60)}분`;
 export function workClock(v) {
-  const x = clockProgress(v.startTime, v.endTime, v.breakMinutes, v.nowSeconds ?? currentLocalClock().seconds);
+  const x = clockProgress(v.startTime, v.endTime, v.breakMinutes, v.nowSeconds ?? currentLocalClock().seconds, v.shiftDate, v.today);
   const headline = x.state === 'before' ? `출근까지 ${remainingText(x.remainingSeconds)}` : x.state === 'after' ? '오늘도 수고했어요 🎉' : `퇴근까지 ${remainingText(x.remainingSeconds)}`;
-  return { rows: [['퇴근시계', headline, 'text'], ['오늘 총 근무시간', duration(x.worked), 'text'], ['현재까지 근무시간', duration(x.workedSeconds / 60), 'text'], ['근무 진행률', x.progress, 'percent'], ['퇴근 상태', x.state === 'after' ? '퇴근 완료' : x.state === 'before' ? '근무 시작 전' : '근무 중', 'text']], progress: x.progress, note: '현재 시각은 브라우저 기준입니다. 휴게시간은 근무 구간에 균등하게 반영한 추정치입니다.' };
+  return { rows: [['퇴근시계', headline, 'text'], ['오늘 총 근무시간', duration(x.worked), 'text'], ['현재까지 근무시간', duration(x.workedSeconds / 60), 'text'], ['근무 진행률', x.progress, 'percent'], ['퇴근 상태', x.state === 'after' ? '퇴근 완료' : x.state === 'before' ? '근무 시작 전' : '근무 중', 'text']], progress: x.progress, note: '현재 시각은 브라우저 기준입니다. 근무 시작일을 지정하면 해당 근무를 정확히 추적하고, 비워 두면 야간근무를 자동 추정합니다. 휴게시간은 균등 배분한 추정치입니다.' };
 }
 export function salaryClock(v) {
   if (!['gross', 'net'].includes(v.salaryType ?? 'gross')) throw new Error('월급 기준을 선택해 주세요.');
   const salary = num(v.monthlySalary, '월급', 0, 100000000000), days = integer(v.workDays, '월 근무일수', 1, 31), hours = num(v.dailyHours, '1일 근무시간', 0.1, 23.9);
-  const x = clockProgress(v.startTime, v.endTime, v.breakMinutes, v.nowSeconds ?? currentLocalClock().seconds);
+  const x = clockProgress(v.startTime, v.endTime, v.breakMinutes, v.nowSeconds ?? currentLocalClock().seconds, v.shiftDate, v.today);
   if (Math.abs(x.worked - hours * 60) > 1) throw new Error('1일 근무시간은 출퇴근시각에서 휴게시간을 뺀 값과 같아야 합니다.');
   const dayPay = salary / days, hourPay = dayPay / hours;
   const earned = dayPay * x.progress / 100;
-  return { rows: [['오늘 번 돈', earned, 'money'], ['시간당 수입', hourPay, 'money'], ['분당 수입', hourPay / 60, 'money'], ['초당 수입', hourPay / 3600, 'money'], ['오늘 예상 총 수입', dayPay, 'money'], ['이번 달 예상 수입', salary, 'money'], ['퇴근까지', x.state === 'after' ? '퇴근 완료' : x.state === 'before' ? `출근까지 ${remainingText(x.remainingSeconds)}` : remainingText(x.remainingSeconds), 'text']], progress: x.progress, note: `${v.salaryType === 'net' ? '실수령 월급' : '세전 월급'}을 기준으로 한 단순 시간 비례 추정입니다. 세금·수당·휴일근로·연장근로는 자동 반영하지 않습니다. 휴게시간은 근무 구간에 균등하게 배분합니다.` };
+  return { rows: [['오늘 번 돈', earned, 'money'], ['시간당 수입', hourPay, 'money'], ['분당 수입', hourPay / 60, 'money'], ['초당 수입', hourPay / 3600, 'money'], ['오늘 예상 총 수입', dayPay, 'money'], ['이번 달 예상 수입', salary, 'money'], ['퇴근까지', x.state === 'after' ? '퇴근 완료' : x.state === 'before' ? `출근까지 ${remainingText(x.remainingSeconds)}` : remainingText(x.remainingSeconds), 'text']], progress: x.progress, note: `${v.salaryType === 'net' ? '실수령 월급' : '세전 월급'}을 기준으로 한 단순 시간 비례 추정입니다. 세금·수당·휴일근로·연장근로는 자동 반영하지 않습니다. 휴게시간은 근무 구간에 균등하게 배분합니다. 근무 시작일을 비워 두면 야간근무 시각을 자동 추정합니다.` };
 }
 export const dateTimeCalculators = {
   'date-diff': dateDifference, 'date-offset': dateOffset, dday, 'business-days': businessDays,
