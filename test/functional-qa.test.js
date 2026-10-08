@@ -96,4 +96,7 @@ test('퇴근시계는 야간 퇴근 후 완료 상태를 표시', () => {
   assert.equal(row(result, '퇴근 상태'), '퇴근 완료');
   assert.equal(row(result, '현재까지 근무시간'), '7시간 0분');
   assert.equal(result.progress, 100);
+  const next = workClock({ startTime: '22:00', endTime: '06:00', breakMinutes: 60, nowSeconds: 21 * 3600 });
+  assert.equal(row(next, '퇴근 상태'), '근무 시작 전');
+  assert.equal(next.progress, 0);
 });
