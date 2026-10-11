@@ -32,12 +32,14 @@ const guides = {
   loan: ['원리금균등은 같은 금액을 매월 납부하고, 원금균등은 원금을 같은 금액씩 갚아 월 납입액이 점차 줄어듭니다.', '대출금·연 금리·상환 기간을 입력해 첫 달 상환액과 전체 기간의 이자를 비교하세요.'],
   severance: ['퇴직금은 적용 1일 임금 × 30일 × 계속근로일수 ÷ 365로 예상합니다. 퇴직 전 3개월 평균임금과 입력한 1일 통상임금 중 큰 금액을 적용합니다.', '퇴직일은 마지막 근무일 다음 날로 입력합니다. 제외기간 등 특수한 산정은 반영하지 않습니다.'],
   salary: ['월 세전급여에서 비과세액을 뺀 금액에 2026년 근로자 부담 국민연금·건강보험·장기요양보험·고용보험료율을 적용합니다. 국민연금 기준소득월액은 2026년 7월부터 적용된 상·하한을 사용합니다.', '소득세는 급여명세서의 월 원천징수액을 입력하며 지방소득세는 그 10%로 계산합니다.'],
+  'salary-reverse': ['원하는 월 실수령액을 입력하면 기존 연봉 실수령액 계산과 같은 공제 기준을 사용해 필요한 세전 월급과 연봉을 역으로 탐색합니다.', '월 소득세 원천징수액은 입력된 금액으로 고정한 추정치입니다. 실제 원천징수액은 연봉·부양가족 등 조건에 따라 달라질 수 있습니다. <a href="/salary/">연봉 실수령액 계산기</a>에서 정방향 결과도 확인하세요.'],
   hourly: ['주휴수당은 주휴시간 × 시급으로 계산합니다. 현재 주휴시간은 주 5일 균등 근무를 가정하여 주 소정근로시간 ÷ 5로 추정합니다.', '4주 평균 주 15시간 이상 근무하고 소정근로일을 개근한 경우를 가정합니다. 실제 근무일별 시간 배치에 따라 주휴시간이 달라질 수 있습니다.'],
   savings: ['예금은 예치금에 기간별 단리 이자를 계산합니다. 적금은 월초에 매달 같은 금액을 납입하는 것으로 보고 각 납입금의 이자를 더합니다.', '세후 금액은 이자에서 입력한 이자 과세율을 차감합니다.'],
   vat: ['일반과세자 기준 매출 부가세는 공급가액의 10%입니다. 부가세 포함 금액을 입력하면 1.1로 나눠 공급가액을 구합니다.', '매출 부가세에서 공제 가능한 매입세액을 뺀 차액을 납부 또는 환급 가능액으로 나눠 표시합니다.'],
   'dsr-ltv': ['참고용 단순 DSR은 입력한 연간 원리금 상환액 ÷ 연소득 × 100, 단순 LTV는 대출금 ÷ 입력한 주택 가치 × 100입니다.', '입력한 40%·70%는 비교용 예시값입니다. 2026년 실제 적용 기준은 지역·주택·차주·대출 유형과 스트레스 DSR 적용에 따라 달라집니다.'],
   'apartment-cost': ['총 필요금액은 매매가격에 직접 입력한 취득세율·중개보수·법무·등기·이사·수리·대출 부대비를 더합니다. 자기자본은 총 필요금액에서 대출금을 뺀 값입니다.', '원리금균등 또는 원금균등 상환의 첫 달 납입액, 1년차 상환액·이자, 전체 이자를 보여줍니다. 세율은 계약 조건과 기준일에 맞게 직접 확인하세요.'],
   'commercial-property': ['NOI는 연 임대수입에서 공실 손실과 연 운영비를 뺀 금액입니다. Cap Rate의 분모는 매매가, 표면수익률의 분자는 공실 차감 전 연 총임대수입입니다.', 'CoC는 세전 현금흐름 ÷ 실제 투입 자기자본, DSCR은 NOI ÷ 1년차 연간 부채상환액입니다. 대출 원금 상환도 현금흐름에 반영합니다.'],
+  discount: ['상품 원가에 1차 할인율을 적용하고 다시 2차 할인율을 적용합니다. 예를 들어 10만원에 20% 할인 후 추가 10% 할인하면 배송비·쿠폰 적용 전 7만 2천원입니다.', '연속 할인은 단순한 퍼센트 덧셈과 다릅니다. 쿠폰·적립금은 상품 가격을 넘게 차감하지 않으며 배송비는 마지막에 추가합니다. 실질 절감률에 적립금 사용액이 포함된다는 점을 확인하세요.'],
   exchange: ['Frankfurter의 최신 기준 환율을 조회합니다. 자동 조회에 실패하면 통화쌍의 환율을 직접 입력할 수 있습니다.', '우대율은 입력한 환전 수수료율에만 적용합니다. 은행 현찰 매매율과 스프레드는 별도로 확인하세요.'],
   'date-diff': ['두 날짜의 자정 사이를 계산하므로 윤년과 월말을 정확히 반영합니다.', '예를 들어 2월 28일부터 윤년 3월 1일까지는 시작일 미포함 시 2일입니다.'],
   'date-offset': ['기준일을 0일로 두고 지정한 일수만큼 앞이나 뒤로 이동합니다.', '2026년 10월 1일에서 100일 후는 2027년 1월 9일 토요일입니다.'],
@@ -52,6 +54,7 @@ const guides = {
 const sources = {
   severance: { basis: '고용노동부 계산 기준 · 확인 2026-10-02', links: [['고용노동부 퇴직금 계산과 공식 예제', 'https://1350.moel.go.kr/home/hp/retirementpaycal/retirementpaycal.jsp'], ['고용노동부 적용 요건·산정 제외기간', 'https://1350.moel.go.kr/rtmview.do?id=1000320345']] },
   salary: { basis: '보험료율 2026년, 국민연금 상·하한 2026-07-01 적용 · 확인 2026-10-02', links: [['국민연금공단 보험료율·기준소득월액', 'https://www.nps.or.kr/pnsinfo/ntpsklg/getOHAF0097M0.do'], ['국민건강보험공단 2026 보험료율', 'https://edi.nhis.or.kr/portal/images/popup/20251204_pop01longdesc.html'], ['고용보험 근로자 부담', 'https://edrm.ei.go.kr/ei/eim/eg/ei/eiEminsr/retrieveEi0301Info.do'], ['국세청 근로소득 간이세액표 안내', 'https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=7703&mi=2281']] },
+  'salary-reverse': { basis: '2026년 보험료율 · 월 소득세 입력값 고정 추정', links: [['국민연금공단 근로자 보험료율', 'https://www.nps.or.kr/pnsinfo/ntpsklg/getOHAF0097M0.do'], ['국민건강보험공단 2026 보험료율', 'https://edi.nhis.or.kr/portal/images/popup/20251204_pop01longdesc.html'], ['국세청 근로소득 간이세액표', 'https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=7703&mi=2281']] },
   hourly: { basis: '2026년 최저임금 · 확인 2026-10-02', links: [['고용노동부 2026년 최저임금 고시 안내', 'https://www.moel.go.kr/news/enews/report/enewsView.do?news_seq=18144'], ['고용노동부 주휴수당 요건', 'https://1350.moel.go.kr/rtmview.do?id=1000325860']] },
   savings: { basis: '일반 이자소득 원천징수 기준 · 확인 2026-10-02', links: [['국세청 이자소득 원천징수세율', 'https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=7703&mi=2281'], ['국가법령정보센터 지방세법 제103조의13', 'https://www.law.go.kr/LSW/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1031542589']] },
   vat: { basis: '일반과세자 기본 구조 · 확인 2026-10-02', links: [['국세청 부가가치세 개요', 'https://b.nts.go.kr/nts/cm/cntnts/cntntsView.do?cntntsId=7693&mi=2272']] },
@@ -79,7 +82,8 @@ function toolPage(tool) {
     { name: tool.title, url: `${siteUrl}/${tool.slug}/` }
   ];
   const schema = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: crumbs.map((crumb, index) => ({ '@type': 'ListItem', position: index + 1, name: crumb.name, item: crumb.url })) };
-  const related = tools.filter(item => item.slug !== tool.slug && item.category === tool.category).slice(0, 3);
+  const priorityRelated = tool.slug === 'salary' ? 'salary-reverse' : tool.slug === 'salary-reverse' ? 'salary' : null;
+  const related = tools.filter(item => item.slug !== tool.slug && item.category === tool.category).sort((a, b) => Number(b.slug === priorityRelated) - Number(a.slug === priorityRelated)).slice(0, 3);
   const other = related.length ? related : tools.filter(item => item.slug !== tool.slug).slice(0, 3);
   const source = sources[tool.slug];
   const sourceHtml = source ? `<div class="standard-sources"><h3>계산 기준 및 출처</h3><p>${source.basis}</p><ul>${source.links.map(([label, url]) => `<li><a href="${url}" target="_blank" rel="noopener noreferrer">${label} ↗</a></li>`).join('')}</ul></div>` : '';
