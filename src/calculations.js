@@ -80,6 +80,33 @@ export const calculators = {
     if (insurance + incomeTax + localTax > gross) throw new Error('보험료와 입력한 소득세가 월 세전급여를 초과합니다.');
     return { rows: [['예상 월 실수령액', gross - insurance - incomeTax - localTax, 'money'], ['월 세전급여', gross, 'money'], ['4대보험 근로자 부담', insurance, 'money'], ['입력한 소득세·지방소득세', incomeTax + localTax, 'money']], note: '2026년 보험료율과 2026년 7월 국민연금 상·하한을 사용한 추정치입니다. 실제 신고 기준소득월액, 원 단위 처리와 각종 공제는 다를 수 있습니다. 소득세에는 급여명세서의 월 원천징수액을 입력하세요.' };
   },
+  'salary-reverse': v => {
+    const target = won(v.targetNet), exempt = won(v.nontax), incomeTax = n(v.incomeTax);
+    if (![target, exempt, incomeTax].every(Number.isSafeInteger)) throw new Error('금액은 원 단위까지 입력해 주세요.');
+    const takeHome = gross => {
+      try {
+        const result = calculators.salary({ annual: gross * 12 / 10000, nontax: v.nontax, incomeTax });
+        return result.rows[0][1];
+      } catch { return -Infinity; }
+    };
+    let gross = exempt;
+    if (takeHome(gross) < target) {
+      let low = exempt + 1, high = 10000000000;
+      if (takeHome(high) < target) throw new Error('목표 실수령액이 계산 가능한 범위를 초과했습니다.');
+      while (low < high) {
+        const mid = Math.floor((low + high) / 2);
+        if (takeHome(mid) >= target) high = mid;
+        else low = mid + 1;
+      }
+      gross = low;
+    }
+    const direct = calculators.salary({ annual: gross * 12 / 10000, nontax: v.nontax, incomeTax });
+    const actualNet = direct.rows[0][1];
+    return {
+      rows: [['필요한 세전 연봉', gross * 12, 'money'], ['필요한 세전 월급', gross, 'money'], ['예상 월 실수령액', actualNet, 'money'], ['목표 월 실수령액', target, 'money'], ['4대보험 근로자 부담', direct.rows[2][1], 'money'], ['소득세·지방소득세', direct.rows[3][1], 'money']],
+      note: '기존 연봉 계산기와 같은 2026년 보험료율을 사용한 역산 추정입니다. 월 소득세는 입력한 금액으로 고정하며 연봉에 따른 세액 변화를 자동 계산하지 않습니다. 실제 급여명세서와 차이가 날 수 있습니다.'
+    };
+  },
   hourly: v => {
     const hourly = n(v.hourly), hours = n(v.hours);
     if (hours > 40) throw new Error('주 소정근로시간은 40시간 이내로 입력해 주세요. 연장근로는 별도 계산이 필요합니다.');
@@ -91,6 +118,21 @@ export const calculators = {
     const weekly = hourly * (hours + holidayHours);
     const monthlyHours = Math.round((hours + holidayHours) * 365 / 7 / 12);
     return { rows: [['예상 월급', hourly * monthlyHours, 'money'], ['주휴수당 / 주', hourly * holidayHours, 'money'], ['주급', weekly, 'money'], ['주휴시간', holidayHours, 'hours'], ['월 환산 시간', monthlyHours, 'hours']], note: `2026년 최저임금은 시간당 10,320원입니다. 주휴시간은 ${v.holidayHours === '' || v.holidayHours == null ? '주 5일 균등 근무를 가정한 추정치' : '직접 입력한 시간'}입니다. 실제 소정근로일·시간 배치에 따라 확인하세요. 월 환산 시간은 달력 평균을 정수 시간으로 반올림합니다.` };
+  },
+  discount: v => {
+    const price = n(v.price), firstRate = percent(v.firstRate), secondRate = percent(v.secondRate);
+    const coupon = n(v.coupon), points = n(v.points), shipping = n(v.shipping);
+    if (![price, coupon, points, shipping].every(Number.isSafeInteger)) throw new Error('가격·쿠폰·포인트·배송비는 원 단위 정수로 입력해 주세요.');
+    const afterFirst = Math.round(price * (1 - firstRate));
+    const afterSecond = Math.round(afterFirst * (1 - secondRate));
+    const usedCoupon = Math.min(afterSecond, coupon);
+    const usedPoints = Math.min(afterSecond - usedCoupon, points);
+    const subtotal = afterSecond - usedCoupon - usedPoints;
+    const saved = price - subtotal;
+    return {
+      rows: [['최종 결제액', subtotal + shipping, 'money'], ['배송 전 결제액', subtotal, 'money'], ['총 절감액 (포인트 포함)', saved, 'money'], ['실질 절감률 (배송비 제외)', price === 0 ? 0 : saved / price * 100, 'percent'], ['1차 할인 후 가격', afterFirst, 'money'], ['2차 할인 후 가격', afterSecond, 'money'], ['사용된 쿠폰', usedCoupon, 'money'], ['사용된 포인트', usedPoints, 'money'], ['배송비', shipping, 'money']],
+      note: '1차 할인 후 추가 할인율을 순서대로 적용하고 각 단계에서 원 단위 반올림합니다. 쿠폰과 포인트는 상품값을 초과해 차감하지 않으며 배송비는 마지막에 더합니다. 실질 절감률에는 포인트 사용액이 포함되고 배송비는 제외됩니다. 실제 쇼핑몰의 할인·반올림·쿠폰 적용 순서는 다를 수 있습니다.'
+    };
   },
   savings: v => {
     const months = n(v.months), rate = pct(v.rate), tax = percent(v.tax);

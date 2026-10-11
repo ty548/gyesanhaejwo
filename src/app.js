@@ -86,7 +86,7 @@ async function fetchRate(form) {
 
 function renderRows(result, slug, values) {
   const row = (entry, featured = false) => `<div class="result-row ${featured ? 'featured' : ''}"><span>${escapeHtml(entry[0])}</span><strong>${formatValue(entry[1], entry[2], slug, values)}</strong></div>`;
-  const featured = result.featured || [0];
+  const featured = result.featured || (slug === 'hourly' ? [1, 0] : [0]);
   const primary = featured.map(index => row(result.rows[index], true)).join('');
   const others = result.rows.filter((_, index) => !featured.includes(index));
   const progress = Number.isFinite(result.progress) ? `<div class="clock-progress" role="progressbar" aria-label="근무 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(result.progress)}"><span style="width:${Math.max(0, Math.min(100, result.progress))}%"></span></div>` : '';

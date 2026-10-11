@@ -12,6 +12,7 @@ export const tools = [
   { slug: 'loan', title: '대출 계산기', icon: '🏦', category: 'finance', short: '월 상환액과 총 이자를 비교해요', description: '원리금균등·원금균등 방식의 월 상환액, 총 이자와 총 상환액을 계산합니다.', tag: '가장 많이 찾는 계산기' },
   { slug: 'severance', title: '퇴직금 계산기', icon: '💼', category: 'work', short: '근속기간과 평균임금으로 계산해요', description: '입사일과 퇴직일, 퇴직 전 3개월 임금으로 예상 퇴직금을 계산합니다.' },
   { slug: 'salary', title: '연봉 실수령액 계산기', icon: '💰', category: 'work', short: '4대보험과 세금을 뺀 월급', description: '2026년 근로자 보험료율과 직접 입력한 원천징수세액으로 월 실수령액을 추정합니다.' },
+  { slug: 'salary-reverse', title: '실수령액 역산 계산기', icon: '🎯', category: 'work', short: '원하는 월 실수령액으로 세전 연봉 역산', description: '목표 월 실수령액과 비과세액, 월 원천징수 소득세를 입력하면 2026년 근로자 보험료율을 적용해 필요한 세전 연봉을 추정합니다.', keywords: '실수령액으로 연봉 계산 월급 역산 세전 연봉 세후 세전' },
   { slug: 'hourly', title: '시급·주휴수당 계산기', icon: '⏰', category: 'work', short: '주휴수당과 예상 월급까지', description: '시급과 주 근로시간으로 주휴수당, 주급과 월 환산 급여를 계산합니다.' },
   { slug: 'savings', title: '적금·예금 계산기', icon: '🐷', category: 'finance', short: '만기 원금과 세후 이자', description: '정기적금 또는 정기예금의 만기 원금, 이자, 세후 수령액을 계산합니다.' },
   { slug: 'vat', title: '부가세 계산기', icon: '🧾', category: 'business', short: '공급가액·부가세·납부 예상액', description: '일반과세자 10% 기준 공급가액과 부가세를 나누고 매입세액을 반영합니다.' },
@@ -27,6 +28,7 @@ export const tools = [
   { slug: 'playback-speed', title: '영상 배속 계산기', icon: '🎬', category: 'date-time', short: '시청시간과 종료 시각', description: '영상 길이와 재생 배속으로 실제 시청시간, 절약시간과 종료 시각을 계산합니다.', keywords: '1.5배속 시간 계산 영상 시간' },
   { slug: 'work-clock', title: '퇴근시계', icon: '🏁', category: 'date-time', short: '퇴근까지 남은 시간', description: '현재 시각을 기준으로 퇴근까지 남은 시간과 근무 진행률을 보여줍니다.', keywords: '퇴근시간 계산기 퇴근시계' },
   { slug: 'salary-clock', title: '월급시계', icon: '💸', category: 'date-time', short: '오늘 번 돈을 실시간으로', description: '월급과 근무시간을 바탕으로 오늘 번 돈과 시간당·분당 수입을 추정합니다.', keywords: '시급 환산 오늘 번 돈 월급시계' },
+  { slug: 'discount', title: '할인율·최종가격 계산기', icon: '🏷️', category: 'life', short: '중복할인·쿠폰·배송비까지 최종 결제액', description: '상품 원가에 연속 할인율, 쿠폰, 적립금과 배송비를 반영해 최종 결제액과 실질 절감률을 계산합니다.', keywords: '할인율 계산 할인 가격 계산 중복 할인 쿠폰 최종 가격 세일 계산기' },
   { slug: 'calculator', title: '무료 온라인 계산기', icon: '🧮', category: 'general', short: '사칙연산·괄호·백분율을 빠르게', description: '사칙연산, 괄호, 백분율, 제곱과 제곱근을 키보드나 터치로 계산합니다.', keywords: '일반 계산기 사칙연산 퍼센트 계산기' }
 ];
 
