@@ -33,6 +33,28 @@ export const forms = {
     section(money('ownerManagement', '소유주 부담 월 관리비', 30), '운영비'), money('propertyTax', '연 재산세', 100), money('insurance', '연 보험료', 30), money('repairs', '연 수선비', 100), money('otherOperating', '기타 연 운영비', 70),
     section(money('loan', '대출금', 25000), '대출'), number('rate', '대출 연 금리', 5, '%'), number('years', '대출 기간', 20, '년', 1, 1, 100), select('method', '상환방식', [['annuity', '원리금균등'], ['equal-principal', '원금균등']])
   ],
+  'coin-average': [
+    { ...number('buyFee', '매수 수수료율', '0.05', '%', 0, 'any', 99.999999999999), hint: '매수 금액에 수수료를 더해 원가를 계산합니다. 거래소와 수수료 등급에 맞게 입력하세요.' },
+    { ...number('price1', '1회차 매수 단가', '100000000', '원', 0, 'any'), section: '1회차 매수' },
+    { ...number('qty1', '1회차 매수 수량', '0.001', '개', 0, 'any'), hint: '소수점 이하 최대 12자리까지 지원합니다.' },
+    { ...number('price2', '2회차 매수 단가', '80000000', '원', 0, 'any'), section: '2회차 매수' },
+    { ...number('qty2', '2회차 매수 수량', '0.002', '개', 0, 'any'), hint: '소수점 이하 최대 12자리까지 지원합니다.' },
+    { ...number('price3', '3회차 매수 단가', '', '원', 0, 'any'), optional: true, section: '3회차 매수' },
+    { ...number('qty3', '3회차 매수 수량', '', '개', 0, 'any'), optional: true, hint: '소수점 이하 최대 12자리까지 지원합니다.' },
+    { ...number('price4', '4회차 매수 단가', '', '원', 0, 'any'), optional: true, section: '4회차 매수' },
+    { ...number('qty4', '4회차 매수 수량', '', '개', 0, 'any'), optional: true, hint: '소수점 이하 최대 12자리까지 지원합니다.' },
+    { ...number('price5', '5회차 매수 단가', '', '원', 0, 'any'), optional: true, section: '5회차 매수' },
+    { ...number('qty5', '5회차 매수 수량', '', '개', 0, 'any'), optional: true, hint: '소수점 이하 최대 12자리까지 지원합니다.' },
+    { ...number('extraPrice', '추가 매수 단가 (가정)', '70000000', '원', 0, 'any'), section: '추가 매수 시뮬레이션', optional: true },
+    { ...number('extraQty', '추가 매수 수량 (가정)', '0.001', '개', 0, 'any'), optional: true }
+  ],
+  'coin-profit': [
+    { ...number('buyPrice', '평균 매수 단가', '100000000', '원', 0, 'any'), hint: '매수 수수료를 빼기 전의 평균 매수가를 입력하세요.' },
+    { ...number('quantity', '보유 수량', '0.003', '개', 0, 'any'), hint: '소수점 이하 최대 12자리까지 지원합니다.' },
+    number('sellPrice', '현재 매도가 (가정)', '80000000', '원', 0, 'any'),
+    number('buyFee', '매수 수수료율', '0.05', '%', 0, 'any'),
+    number('sellFee', '매도 수수료율', '0.05', '%', 0, 'any')
+  ],
   discount: [number('price', '할인 전 상품 가격', 100000, '원', 0, 1), number('firstRate', '1차 할인율', 20, '%', 0, 'any', 100), number('secondRate', '추가 할인율', 10, '%', 0, 'any', 100), number('coupon', '쿠폰 할인 금액', 0, '원', 0, 1), number('points', '사용할 적립금·포인트', 0, '원', 0, 1), number('shipping', '배송비', 0, '원', 0, 1)],
   exchange: [number('amount', '환전할 금액', 1000, ''), select('from', '보내는 통화', [['USD', '🇺🇸 미국 달러 USD'], ...currencies.filter(([code]) => code !== 'USD')]), select('to', '받는 통화', currencies), number('rate', '1 보내는 통화당 받는 통화 환율', '', '', 0), number('fee', '환전 수수료', 1, '%', 0, 'any', 100), number('preferential', '환전 우대율', 0, '%', 0, 'any', 100)],
   'date-diff': [date('start', '시작일', 'today'), date('end', '종료일', 'today'), select('includeStart', '시작일 포함', [['no', '미포함'], ['yes', '포함']])],
