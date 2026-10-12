@@ -18,5 +18,6 @@ test('정적 빌더는 별도 코인 모듈을 배포 에셋에 복사하고 코
   assert.match(builder, /'coin\.js', 'app\.js'/);
   assert.match(builder, /'coin-average': \[/);
   assert.match(builder, /'coin-profit': \[/);
-  assert.match(builder, /crypto/);
+  assert.match(builder, /<a href="\/coin-profit\/">/);
+  assert.match(builder, /<a href="\/coin-average\/">/);
 });

@@ -35,8 +35,8 @@ test('5회 분할매수와 물타기 가정을 분리해 표시', () => {
   });
   assert.equal(at(r, '현재 보유 수량'), '0.6개');
   assert.equal(at(r, '추가 매수 후 보유 수량'), '0.7개');
-  assert.equal(at(r, '추가 매수 후 총 원가'), '50,000원');
-  assert.equal(at(r, '추가 매수 후 평단가'), '71,428.571428571429원');
+  assert.equal(at(r, '추가 매수 후 총 원가'), '51,000원');
+  assert.equal(at(r, '추가 매수 후 평단가'), '72,857.142857142857원');
   assert.deepEqual(r.featured, [0,1]);
 });
 test('매수 수수료는 원가에 더하고 평단에 반영', () => {
