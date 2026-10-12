@@ -5,6 +5,7 @@ export const categories = [
   { id: 'property', name: '부동산', icon: '🏠', description: '구매 비용과 수익률 점검' },
   { id: 'business', name: '사업 · 세금', icon: '🧾', description: '사업에 필요한 빠른 계산' },
   { id: 'life', name: '생활 · 환율', icon: '🌐', description: '매일 쓰는 간편 계산' },
+  { id: 'crypto', name: '코인 계산', icon: '🪙', description: '평단가·분할매수·순손익을 수수료까지 계산' },
   { id: 'date-time', name: '날짜 · 시간', icon: '📅', description: '날짜부터 근무시간까지 빠르게 계산' }
 ];
 
@@ -28,6 +29,8 @@ export const tools = [
   { slug: 'playback-speed', title: '영상 배속 계산기', icon: '🎬', category: 'date-time', short: '시청시간과 종료 시각', description: '영상 길이와 재생 배속으로 실제 시청시간, 절약시간과 종료 시각을 계산합니다.', keywords: '1.5배속 시간 계산 영상 시간' },
   { slug: 'work-clock', title: '퇴근시계', icon: '🏁', category: 'date-time', short: '퇴근까지 남은 시간', description: '현재 시각을 기준으로 퇴근까지 남은 시간과 근무 진행률을 보여줍니다.', keywords: '퇴근시간 계산기 퇴근시계' },
   { slug: 'salary-clock', title: '월급시계', icon: '💸', category: 'date-time', short: '오늘 번 돈을 실시간으로', description: '월급과 근무시간을 바탕으로 오늘 번 돈과 시간당·분당 수입을 추정합니다.', keywords: '시급 환산 오늘 번 돈 월급시계' },
+  { slug: 'coin-average', title: '코인 평단가·물타기 계산기', icon: '🪙', category: 'crypto', short: '5회 분할매수와 추가매수 후 평단가', description: '코인 5회 분할매수 가격·수량과 매수 수수료를 합산해 평균 매수가를 계산하고, 추가 매수 후 평단가를 비교합니다.', keywords: '코인 평단가 계산기 코인 물타기 계산 비트코인 평단 분할매수 코인 평균 단가' },
+  { slug: 'coin-profit', title: '코인 수익률·본전가격 계산기', icon: '📈', category: 'crypto', short: '매수·매도 수수료 반영 손익과 본전 상승률', description: '평균 매수가와 수량, 현재 매도가, 매수·매도 수수료율을 입력해 순손익·수익률·손익분기 가격·필요 상승률을 계산합니다.', keywords: '코인 수익률 계산기 비트코인 손익 계산 본전가격 손익분기 필요 상승률 매도 수수료' },
   { slug: 'discount', title: '할인율·최종가격 계산기', icon: '🏷️', category: 'life', short: '중복할인·쿠폰·배송비까지 최종 결제액', description: '상품 원가에 연속 할인율, 쿠폰, 적립금과 배송비를 반영해 최종 결제액과 실질 절감률을 계산합니다.', keywords: '할인율 계산 할인 가격 계산 중복 할인 쿠폰 최종 가격 세일 계산기' },
   { slug: 'calculator', title: '무료 온라인 계산기', icon: '🧮', category: 'general', short: '사칙연산·괄호·백분율을 빠르게', description: '사칙연산, 괄호, 백분율, 제곱과 제곱근을 키보드나 터치로 계산합니다.', keywords: '일반 계산기 사칙연산 퍼센트 계산기' }
 ];

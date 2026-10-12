@@ -1,5 +1,6 @@
 import { dateTimeCalculators, dateUtc } from './date-time.js';
 import { apartmentCost, commercialProperty } from './property.js';
+import { coinCalculators } from './coin.js';
 
 const n = value => {
   const result = Number(value);
@@ -171,5 +172,6 @@ export const calculators = {
     const effectiveFee = fee * (1 - preferential);
     return { rows: [['수수료 반영 수령액', converted * (1 - fee), 'currency'], ['기준 환산액', converted, 'currency'], ['환전 비용', converted * fee, 'currency'], ['우대율 적용 수령액', converted * (1 - effectiveFee), 'currency'], ['우대 후 환전 비용', converted * effectiveFee, 'currency']], note: sameCurrency ? '같은 통화는 환전하지 않으므로 환율 1과 수수료 0으로 계산합니다.' : '우대율은 입력 수수료에만 적용합니다. 기준 환율과 실제 은행 현찰 매매율·스프레드는 다를 수 있습니다.' };
   },
+  ...coinCalculators,
   ...dateTimeCalculators
 };

@@ -39,6 +39,8 @@ const guides = {
   'dsr-ltv': ['참고용 단순 DSR은 입력한 연간 원리금 상환액 ÷ 연소득 × 100, 단순 LTV는 대출금 ÷ 입력한 주택 가치 × 100입니다.', '입력한 40%·70%는 비교용 예시값입니다. 2026년 실제 적용 기준은 지역·주택·차주·대출 유형과 스트레스 DSR 적용에 따라 달라집니다.'],
   'apartment-cost': ['총 필요금액은 매매가격에 직접 입력한 취득세율·중개보수·법무·등기·이사·수리·대출 부대비를 더합니다. 자기자본은 총 필요금액에서 대출금을 뺀 값입니다.', '원리금균등 또는 원금균등 상환의 첫 달 납입액, 1년차 상환액·이자, 전체 이자를 보여줍니다. 세율은 계약 조건과 기준일에 맞게 직접 확인하세요.'],
   'commercial-property': ['NOI는 연 임대수입에서 공실 손실과 연 운영비를 뺀 금액입니다. Cap Rate의 분모는 매매가, 표면수익률의 분자는 공실 차감 전 연 총임대수입입니다.', 'CoC는 세전 현금흐름 ÷ 실제 투입 자기자본, DSCR은 NOI ÷ 1년차 연간 부채상환액입니다. 대출 원금 상환도 현금흐름에 반영합니다.'],
+  'coin-average': ['각 회차의 매수가와 코인 수량을 최대 5회 입력하고 매수 수수료율을 지정하면, 수량 가중 평균 매수가와 실제 원가에 수수료를 반영한 평단가를 계산합니다.', '물타기 시뮬레이션의 추가 매수 가격·수량을 함께 입력하면 추가 매수 후의 새 평단가를 보여줍니다. 두 값을 모두 비우면 기존 거래 합계만 계산하며, 이 기능은 향후 가격을 예측하지 않습니다.', '<a href="/coin-profit/">코인 수익률·본전가격 계산기</a>에서 계산한 평단가와 수량으로 수수료 포함 손익분기 가격을 비교할 수 있습니다.'],
+  'coin-profit': ['평균 매수가 × 보유 수량에 매수 수수료를 더해 원가를 구하고, 현재 매도가 × 수량에서 매도 수수료를 빼서 순손익과 순수익률을 계산합니다.', '손익분기 매도가는 매수 원가와 매도 수수료를 동시에 충당하는 가격입니다. 손실 상태에서 필요한 상승률은 현재가를 분모로 계산하므로 손실률의 절댓값과 다를 수 있습니다.', '평단가가 필요하면 <a href="/coin-average/">코인 평단가·물타기 계산기</a>에서 분할매수 기록을 먼저 계산하세요. 가격·수수료는 직접 입력하며 실시간 시세, 자동매매 또는 투자 권유는 제공하지 않습니다.'],
   discount: ['상품 원가에 1차 할인율을 적용하고 다시 2차 할인율을 적용합니다. 예를 들어 10만원에 20% 할인 후 추가 10% 할인하면 배송비·쿠폰 적용 전 7만 2천원입니다.', '연속 할인은 단순한 퍼센트 덧셈과 다릅니다. 쿠폰·적립금은 상품 가격을 넘게 차감하지 않으며 배송비는 마지막에 추가합니다. 실질 절감률에 적립금 사용액이 포함된다는 점을 확인하세요.'],
   exchange: ['Frankfurter의 최신 기준 환율을 조회합니다. 자동 조회에 실패하면 통화쌍의 환율을 직접 입력할 수 있습니다.', '우대율은 입력한 환전 수수료율에만 적용합니다. 은행 현찰 매매율과 스프레드는 별도로 확인하세요.'],
   'date-diff': ['두 날짜의 자정 사이를 계산하므로 윤년과 월말을 정확히 반영합니다.', '예를 들어 2월 28일부터 윤년 3월 1일까지는 시작일 미포함 시 2일입니다.'],
@@ -82,7 +84,7 @@ function toolPage(tool) {
     { name: tool.title, url: `${siteUrl}/${tool.slug}/` }
   ];
   const schema = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: crumbs.map((crumb, index) => ({ '@type': 'ListItem', position: index + 1, name: crumb.name, item: crumb.url })) };
-  const priorityRelated = tool.slug === 'salary' ? 'salary-reverse' : tool.slug === 'salary-reverse' ? 'salary' : null;
+  const priorityRelated = tool.slug === 'salary' ? 'salary-reverse' : tool.slug === 'salary-reverse' ? 'salary' : tool.slug === 'coin-average' ? 'coin-profit' : tool.slug === 'coin-profit' ? 'coin-average' : null;
   const related = tools.filter(item => item.slug !== tool.slug && item.category === tool.category).sort((a, b) => Number(b.slug === priorityRelated) - Number(a.slug === priorityRelated)).slice(0, 3);
   const other = related.length ? related : tools.filter(item => item.slug !== tool.slug).slice(0, 3);
   const source = sources[tool.slug];
@@ -105,7 +107,7 @@ for (const page of trustPages) {
   await mkdir(path.join(dist, page.slug), { recursive: true });
   await writeFile(path.join(dist, page.slug, 'index.html'), trustPage(page));
 }
-for (const file of ['app.js', 'catalog.js', 'forms.js', 'calculations.js', 'date-time.js', 'property.js', 'rates.js', 'general-calculator.js', 'general-ui.js', 'style.css', 'favicon.svg']) {
+for (const file of ['coin.js', 'app.js', 'catalog.js', 'forms.js', 'calculations.js', 'date-time.js', 'property.js', 'rates.js', 'general-calculator.js', 'general-ui.js', 'style.css', 'favicon.svg']) {
   await copyFile(path.join(root, 'src', file), path.join(dist, 'assets', file));
 }
 if (siteUrl) {
