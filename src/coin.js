@@ -29,11 +29,22 @@ export function formatCoinDecimal(value) {
   const fraction = (positive % SCALE).toString().padStart(12, '0').replace(/0+$/, '');
   return sign + whole + (fraction ? '.' + fraction : '');
 }
-const money = raw => formatCoinDecimal(roundDiv(raw, SCALE)) + '원';
+// Formatting changes presentation only. All arithmetic stays in scaled BigInt units.
+const formatScaledPlaces = (value, places, roundUp = false) => {
+  const divisor = 10n ** BigInt(12 - places);
+  const rounded = (roundUp ? ceilDiv(value, divisor) : roundDiv(value, divisor)) * divisor;
+  return formatCoinDecimal(rounded);
+};
+const money = raw => {
+  const scaled = roundDiv(raw, SCALE);
+  // Keep sub-won amounts visible rather than misleadingly displaying 0원.
+  return formatScaledPlaces(scaled, abs(scaled) < SCALE && scaled !== 0n ? 12 : 0) + '원';
+};
 const quantity = scaled => formatCoinDecimal(scaled) + '개';
-const coinPrice = scaled => formatCoinDecimal(scaled) + '원';
+const coinPrice = scaled => formatScaledPlaces(scaled, abs(scaled) < SCALE ? 12 : abs(scaled) < 1000n * SCALE ? 2 : 0) + '원';
+const breakEvenDisplay = scaled => formatScaledPlaces(scaled, scaled < SCALE ? 12 : scaled < 1000n * SCALE ? 2 : 0, true) + '원';
 const percent = (numerator, denominator) =>
-  denominator === 0n ? '계산 불가' : formatCoinDecimal(roundDiv(numerator * ONE_HUNDRED, denominator)) + '%';
+  denominator === 0n ? '계산 불가' : formatScaledPlaces(roundDiv(numerator * ONE_HUNDRED, denominator), 2) + '%';
 
 function feePercent(value, label) {
   const fee = parseCoinDecimal(value, label, true);
@@ -112,7 +123,7 @@ export function coinProfit(values) {
     rows: [
       entry('매도 시 순손익', money(profit)),
       entry('수수료 포함 수익률', percent(profit, cost)),
-      entry('손익분기 매도가 (1개 기준)', coinPrice(breakEvenPrice)),
+      entry('손익분기 매도가 (1개 기준)', breakEvenDisplay(breakEvenPrice)),
       entry('현재가 대비 본전 필요 상승률', percent(additionalRise, currentPrice)),
       entry('총 매입 원가', money(cost)),
       entry('매도 후 수령 예상액', money(proceeds)),
@@ -121,7 +132,7 @@ export function coinProfit(values) {
       entry('보유 수량', quantity(qty))
     ],
     featured: [0, 1, 2, 3],
-    note: '현물 코인 전체 수량을 입력한 현재 매도가로 매도한다고 가정합니다. 매수 수수료는 원가에 더하고 매도 수수료는 매도 금액에서 뺍니다. 손익분기 가격은 수수료를 충당하는 최소 이론가이며, 본전 필요 상승률은 이미 본전 이상이면 0%입니다. 최대 소수 12자리 입력 기준으로 계산하며 세금·슬리피지·호가 차이·거래소 반올림은 제외합니다.'
+    note: '현물 코인 전체 수량을 입력한 현재 매도가로 매도한다고 가정합니다. 매수 수수료는 원가에 더하고 매도 수수료는 매도 금액에서 뺍니다. 손익분기 가격은 수수료를 충당하는 최소 이론가이며 표시 단위로 올림합니다. 본전 필요 상승률은 이미 본전 이상이면 0%입니다. 최대 소수 12자리 입력 기준으로 계산하며 세금·슬리피지·호가 차이·거래소 반올림은 제외합니다.'
   };
 }
 

@@ -26,7 +26,7 @@ test('0.1 + 0.2 수량을 부동소수점 오차 없이 합산', () => {
   const r = coinAverage(baseAverage);
   assert.equal(at(r, '현재 보유 수량'), '0.3개');
   assert.equal(at(r, '현재 매입금액 (수수료 제외)'), '26,000원');
-  assert.equal(at(r, '현재 평단가 (매수 수수료 포함)'), '86,666.666666666667원');
+  assert.equal(at(r, '현재 평단가 (매수 수수료 포함)'), '86,667원');
 });
 test('5회 분할매수와 물타기 가정을 분리해 표시', () => {
   const r = coinAverage({
@@ -36,14 +36,14 @@ test('5회 분할매수와 물타기 가정을 분리해 표시', () => {
   assert.equal(at(r, '현재 보유 수량'), '0.6개');
   assert.equal(at(r, '추가 매수 후 보유 수량'), '0.7개');
   assert.equal(at(r, '추가 매수 후 총 원가'), '51,000원');
-  assert.equal(at(r, '추가 매수 후 평단가'), '72,857.142857142857원');
+  assert.equal(at(r, '추가 매수 후 평단가'), '72,857원');
   assert.deepEqual(r.featured, [0,1]);
 });
 test('매수 수수료는 원가에 더하고 평단에 반영', () => {
   const r = coinAverage({ ...baseAverage, buyFee: '0.1' });
   assert.equal(at(r, '현재 매수 수수료 합계'), '26원');
   assert.equal(at(r, '현재 총 매입 원가'), '26,026원');
-  assert.equal(at(r, '현재 평단가 (매수 수수료 포함)'), '86,753.333333333333원');
+  assert.equal(at(r, '현재 평단가 (매수 수수료 포함)'), '86,753원');
 });
 test('소수 12자리와 극소 금액도 정밀도 손실 없이 처리', () => {
   const r = coinAverage({ buyFee:'0', price1:'0.000000000001', qty1:'0.000000000001', price2:'', qty2:'', price3:'', qty3:'', price4:'', qty4:'', price5:'', qty5:'', extraPrice:'', extraQty:'' });
@@ -75,8 +75,8 @@ test('수수료 없는 손실: -50원, -50%, 본전까지 +100%', () => {
 test('매수·매도 수수료 1%씩 적용하고 본전가격을 상향 계산', () => {
   const r = coinProfit({ ...baseProfit, sellPrice:'100', buyFee:'1', sellFee:'1' });
   assert.equal(at(r, '매도 시 순손익'), '-2원');
-  assert.equal(at(r, '손익분기 매도가 (1개 기준)'), '102.020202020203원');
-  assert.equal(at(r, '현재가 대비 본전 필요 상승률'), '2.020202020203%');
+  assert.equal(at(r, '손익분기 매도가 (1개 기준)'), '102.03원');
+  assert.equal(at(r, '현재가 대비 본전 필요 상승률'), '2.02%');
 });
 test('이미 이익이면 본전 필요 상승률은 0%', () => {
   const r = coinProfit({ ...baseProfit, sellPrice:'120' });
@@ -94,4 +94,28 @@ test('본전가격 산식은 절대 음수가 아니고 매도 수수료가 100%
   assert.throws(() => coinProfit({ ...baseProfit, sellFee:'100' }), /100% 미만/);
   assert.throws(() => coinProfit({ ...baseProfit, sellPrice:'0' }), /0보다 큰/);
   assert.throws(() => coinProfit({ ...baseProfit, quantity:'0' }), /0보다 큰/);
+});
+
+test('큰 코인 가격은 원 단위, 수익률은 소수 둘째 자리까지 표기', () => {
+  const result = coinProfit({
+    buyPrice: '100000000', sellPrice: '80000000', quantity: '0.003',
+    buyFee: '0.05', sellFee: '0.05'
+  });
+  assert.equal(at(result, '매도 시 순손익'), '-60,270원');
+  assert.equal(at(result, '수수료 포함 수익률'), '-20.08%');
+  assert.equal(at(result, '손익분기 매도가 (1개 기준)'), '100,100,051원');
+  assert.equal(at(result, '현재가 대비 본전 필요 상승률'), '25.13%');
+});
+
+test('수익률의 불필요한 후행 0은 표시하지 않음', () => {
+  const result = coinProfit({ buyPrice:'100', sellPrice:'119.8', quantity:'1', buyFee:'0', sellFee:'0' });
+  assert.equal(at(result, '수수료 포함 수익률'), '19.8%');
+});
+
+test('저가 코인 가격은 소수점 보존, 본전가격은 표시 자릿수 올림', () => {
+  const result = coinProfit({ buyPrice:'0.00000001', sellPrice:'0.000000009', quantity:'1', buyFee:'0', sellFee:'0' });
+  assert.equal(at(result, '손익분기 매도가 (1개 기준)'), '0.00000001원');
+  assert.equal(at(result, '현재가 대비 본전 필요 상승률'), '11.11%');
+  const small = coinProfit({ buyPrice:'1.001', sellPrice:'1', quantity:'1', buyFee:'0', sellFee:'0' });
+  assert.equal(at(small, '손익분기 매도가 (1개 기준)'), '1.01원');
 });
